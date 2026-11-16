@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>عسّاس</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: fixed dark-green rail on the left, off-white work area; each section is a square map beside one working column. */
+:root {
+  --green-900: #12302B;
+  --green-800: #1E4640;
+  --green-700: #285A52;
+  --green-500: #4E8378;
+  --paper: #F6F2EB;
+  --paper-2: #EEE8DC;
+  --card: #FBF9F4;
+  --line: #D8D0C0;
+  --ink: #1B2A27;
+  --muted: #5F6B66;
+  --ok: #2E7D5B;
+  --warn: #A4630B;
+  --warn-bg: #F4E6C8;
+  --alarm: #B93A26;
+  --alarm-bg: #F6DDD6;
+  --stale: #8B8F8B;
+  --d1: #FFD166;
+  --d2: #06D6A0;
+  --d3: #4CC9F0;
+  --map-line: #FFFFFF;
+  --map-ink: #0E1F1C;
+  --map-shade: rgba(10, 22, 20, 0.55);
+  --alarm-map: #FF5B3A;
+  --font: "IBM Plex Sans Arabic", "IBM Plex Sans", "Segoe UI", Tahoma, sans-serif;
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+}
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.4; }
+* { box-sizing: border-box; }
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.app { display: grid; grid-template-columns: 208px minmax(0, 1fr); height: 100%; }
+
+.side { background: var(--green-800); color: var(--paper); display: flex; flex-direction: column; gap: 28px; padding-block: 22px 18px; padding-left: var(--gl); padding-right: 14px; min-height: 0; }
+.brand-name { font-size: 34px; font-weight: 700; line-height: 1.25; }
+.brand-sub { font-size: 12.5px; color: #B9CBC5; margin-top: 2px; }
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav a { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 4px; text-decoration: none; color: #D5E0DC; font-weight: 500; }
+.nav a:hover { background: var(--green-700); color: var(--paper); }
+.nav a[aria-current="page"] { background: var(--paper); color: var(--green-900); font-weight: 600; }
+.nav svg { width: 18px; height: 18px; flex: none; }
+.badge { margin-left: auto; background: var(--alarm); color: #FFFFFF; font-size: 12px; font-weight: 600; min-width: 20px; height: 20px; border-radius: 10px; display: grid; place-items: center; padding: 0 6px; }
+.link { margin-top: auto; border-top: 1px solid var(--green-700); padding-top: 14px; font-size: 12.5px; color: #B9CBC5; }
+.link-title { text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; margin-bottom: 8px; }
+.link-dots { display: flex; gap: 6px; margin-bottom: 6px; }
+.link-dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--c); border: 1.5px solid var(--green-900); }
+.link-dots i.off { background: transparent; border: 1.5px dashed #B9CBC5; }
+
+.main { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; min-height: 0; }
+.top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 12px 0 12px 22px; padding-right: var(--gr); border-bottom: 1px solid var(--line); }
+.top h1 { font-size: 20px; font-weight: 600; }
+.top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; padding: 4px 10px; border-radius: 3px; background: var(--paper-2); border: 1px solid var(--line); white-space: nowrap; }
+.chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--stale); }
+.chip.run::before { background: var(--ok); }
+.chip.chip-alarm { background: var(--alarm-bg); border-color: var(--alarm); color: var(--alarm); }
+.chip.chip-alarm::before { background: var(--alarm); }
+.chip.chip-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+.chip.chip-warn::before { background: var(--warn); }
+.sim-note { font-size: 12.5px; color: var(--muted); }
+#clock { font-size: 15px; font-weight: 600; min-width: 68px; text-align: right; }
+
+.view { min-height: 0; min-width: 0; padding: 16px 0 18px 22px; padding-right: var(--gr); }
+.split { container-type: size; height: 100%; }
+.split-grid { display: grid; grid-template-columns: min(100cqh, calc(100cqw - 372px)) minmax(0, 1fr); gap: 18px; height: 100%; }
+.map-cell { position: relative; min-width: 0; }
+.sidecol { display: flex; flex-direction: column; gap: 14px; min-height: 0; min-width: 0; overflow: auto; }
+
+.map { position: relative; width: 100%; aspect-ratio: 1; max-width: 100%; overflow: hidden; background-color: var(--green-900); background-image: url("sat.jpg"); background-repeat: no-repeat; border-radius: 3px; }
+.map-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map-svg * { vector-effect: non-scaling-stroke; }
+.map-layer { position: absolute; inset: 0; pointer-events: none; }
+.zone { fill: none; stroke: var(--map-line); stroke-width: 1.6; stroke-dasharray: 7 5; }
+.plan-case { fill: none; stroke: var(--map-ink); stroke-width: 3.2; stroke-opacity: 0.55; stroke-linejoin: round; }
+.plan { fill: none; stroke-width: 1.5; stroke-dasharray: 5 5; stroke-linejoin: round; }
+.trail { fill: none; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.shade { fill: var(--map-shade); fill-rule: evenodd; }
+.range { fill: none; stroke: var(--map-line); stroke-width: 1.4; stroke-dasharray: 2 5; }
+.area { fill: rgba(246, 242, 235, 0.16); stroke: var(--map-line); stroke-width: 2; }
+.area.bad { fill: rgba(255, 91, 58, 0.22); stroke: var(--alarm-map); }
+.strip { fill: rgba(246, 242, 235, 0.14); stroke: var(--map-line); stroke-width: 1.4; stroke-dasharray: 5 4; }
+
+.mk { position: absolute; transform: translate(-50%, -50%); }
+.mk.drone { width: 26px; height: 26px; transition: left 0.22s linear, top 0.22s linear; }
+.mk.drone b { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; background: var(--c); color: var(--map-ink); border: 2px solid var(--map-ink); box-shadow: 0 0 0 2px var(--map-line); font-size: 13px; font-weight: 700; }
+.mk.drone .nose { position: absolute; inset: -9px; transform: rotate(var(--h, 0deg)); }
+.mk.drone .nose::before { content: ""; position: absolute; left: 50%; top: 0; margin-left: -5px; border: 5px solid transparent; border-bottom: 8px solid var(--map-line); border-top: 0; }
+.mk.drone.rest .nose { display: none; }
+.mk.drone.stale b { background: var(--stale); border-style: dashed; color: var(--map-line); }
+.mk.drone.stale .nose { display: none; }
+.mk.drone .tag { position: absolute; left: 34px; top: 50%; transform: translateY(-50%); background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); font-size: 12px; font-weight: 600; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.mk.tower { width: 16px; height: 16px; background: var(--map-line); border: 2.5px solid var(--map-ink); transform: translate(-50%, -50%) rotate(45deg); }
+.mk.label { transform: translate(-100%, -50%); color: var(--map-line); font-size: 12.5px; font-weight: 600; text-shadow: 0 0 3px var(--map-ink), 0 0 6px var(--map-ink); white-space: nowrap; padding-right: 14px; }
+.mk.label.below { transform: translate(-50%, 0); padding: 12px 0 0; }
+.mk.label.right { transform: translate(0, -50%); padding: 0 0 0 4px; }
+.mk.label.above { transform: translate(-100%, -100%); padding: 0 0 6px; }
+.mk.ring { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--alarm-map); box-shadow: 0 0 0 1.5px var(--map-line), inset 0 0 0 1.5px var(--map-line); }
+.mk.ring.live::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 3px solid var(--alarm-map); animation: pulse 1.6s ease-out infinite; }
+.mk.ring.done { width: 22px; height: 22px; border-width: 2px; }
+@keyframes pulse { from { transform: scale(1); opacity: 0.9; } to { transform: scale(2.1); opacity: 0; } }
+.scale { position: absolute; left: 12px; bottom: 12px; color: var(--map-line); font-size: 12px; font-weight: 600; text-shadow: 0 0 3px var(--map-ink); }
+.scale i { display: block; height: 6px; border: 2px solid var(--map-line); border-top: 0; margin-top: 2px; }
+.credit { position: absolute; right: 8px; bottom: 6px; max-width: 52%; text-align: right; line-height: 1.25; color: var(--map-line); font-size: 10.5px; opacity: 0.85; text-shadow: 0 0 3px var(--map-ink); }
+.north { position: absolute; right: 12px; top: 10px; color: var(--map-line); font-size: 12px; font-weight: 700; text-align: center; text-shadow: 0 0 3px var(--map-ink); }
+.north::before { content: ""; display: block; margin: 0 auto 2px; border: 6px solid transparent; border-bottom: 12px solid var(--map-line); border-top: 0; width: 0; }
+
+.alarm-pop { position: absolute; left: 12px; top: 12px; width: 336px; max-width: calc(100% - 24px); background: var(--card); border: 2px solid var(--alarm); border-radius: 4px; padding: 14px 16px 16px; box-shadow: 0 8px 24px rgba(10, 22, 20, 0.4); pointer-events: auto; }
+.alarm-pop.low { top: auto; bottom: 12px; }
+.alarm-pop .eyebrow { color: var(--alarm); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.alarm-pop h3 { font-size: 22px; font-weight: 600; margin: 2px 0 10px; }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 14px; font-size: 14px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+dl { margin: 0; }
+
+.btn { border: 1px solid var(--green-800); background: var(--green-800); color: var(--paper); font-weight: 600; padding: 9px 16px; border-radius: 4px; }
+.btn:hover { background: var(--green-900); }
+.btn.ghost { background: transparent; color: var(--green-800); }
+.btn.ghost:hover { background: var(--paper-2); }
+.btn.alarm { background: var(--alarm); border-color: var(--alarm); color: #FFFFFF; }
+.btn:disabled { background: var(--paper-2); border-color: var(--line); color: var(--stale); cursor: not-allowed; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 4px; }
+.panel > h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 12px 16px 0; }
+.panel-body { padding: 10px 16px 14px; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.fact span { display: block; font-size: 12.5px; color: var(--muted); }
+.fact strong { display: block; font-size: 19px; font-weight: 600; }
+.bar { height: 6px; background: var(--paper-2); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+.bar i { display: block; height: 100%; background: var(--green-800); width: 0; }
+
+.drone-row { padding: 12px 16px 14px; border-top: 1px solid var(--line); }
+.drone-row:first-of-type { border-top: 0; }
+.drone-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.swatch { width: 22px; height: 22px; border-radius: 50%; background: var(--c); border: 2px solid var(--map-ink); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--map-ink); flex: none; }
+.drone-head h3 { font-size: 16px; font-weight: 600; }
+.pill { margin-left: auto; font-size: 12.5px; font-weight: 600; padding: 2px 9px; border-radius: 3px; border: 1px solid var(--line); background: var(--paper-2); white-space: nowrap; }
+.pill.flying { background: #DDEEE6; border-color: var(--ok); color: var(--ok); }
+.pill.returning { background: #E0EBF0; border-color: #2C6C86; color: #2C6C86; }
+.pill.stale { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+.drone-facts { display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 8px 10px; }
+.drone-facts span { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.drone-facts strong { display: block; font-size: 16px; font-weight: 600; }
+.batt { height: 4px; background: var(--paper-2); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+.batt i { display: block; height: 100%; background: var(--ok); }
+.batt i.mid { background: var(--warn); }
+.batt i.low { background: var(--alarm); }
+.drone-row.stale .drone-facts { opacity: 0.5; }
+.stale-note { margin-top: 10px; font-size: 13.5px; font-weight: 600; color: var(--warn); }
+
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: var(--map-shade); border-radius: 3px; }
+.overlay-box { background: var(--card); border-radius: 4px; padding: 22px 24px; max-width: 320px; text-align: left; }
+.overlay-box h3 { font-size: 19px; font-weight: 600; margin-bottom: 6px; }
+.overlay-box p { color: var(--muted); }
+
+.steps { display: flex; gap: 0; border-bottom: 1px solid var(--line); }
+.steps div { flex: 1; padding: 12px 16px; font-weight: 500; color: var(--muted); border-bottom: 3px solid transparent; }
+.steps div b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 12.5px; margin-right: 8px; }
+.steps div.on { color: var(--green-900); border-bottom-color: var(--green-800); font-weight: 600; }
+.setup-text { color: var(--muted); margin-bottom: 14px; max-width: 60ch; }
+.msg { margin-top: 12px; padding: 9px 12px; border-radius: 3px; font-size: 14px; font-weight: 500; background: #DDEEE6; color: var(--ok); border: 1px solid var(--ok); }
+.msg.bad { background: var(--alarm-bg); color: var(--alarm); border-color: var(--alarm); }
+.meter { height: 8px; background: var(--paper-2); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.meter i { display: block; height: 100%; background: var(--green-800); }
+.meter i.bad { background: var(--alarm); }
+.map.draw { cursor: crosshair; touch-action: none; }
+
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: var(--paper-2); }
+tbody tr.sel { background: #E3ECE7; }
+.plan-table tbody tr { cursor: default; }
+.plan-table th, .plan-table td { padding-left: 8px; padding-right: 8px; }
+.plan-table tbody tr:hover { background: transparent; }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--c); border: 1.5px solid var(--map-ink); margin-right: 8px; vertical-align: -1px; }
+.state { font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 3px; border: 1px solid var(--line); background: var(--paper-2); }
+.state.new { background: var(--alarm-bg); border-color: var(--alarm); color: var(--alarm); }
+
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.tabs button { border: 1px solid var(--line); background: var(--card); padding: 9px 16px; border-radius: 4px; font-weight: 500; }
+.tabs button:hover { background: var(--paper-2); }
+.tabs button[aria-selected="true"] { background: var(--green-800); border-color: var(--green-800); color: var(--paper); font-weight: 600; }
+.store { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100%; }
+.store-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; min-height: 0; }
+.store-grid > .panel { min-height: 0; overflow: auto; }
+.detail-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.detail-body h3 { font-size: 20px; font-weight: 600; }
+.detail-body .sub { color: var(--muted); font-size: 13.5px; }
+.empty { display: grid; place-items: center; height: 100%; min-height: 260px; border: 1px dashed var(--line); border-radius: 4px; background: var(--card); padding: 24px; }
+.empty div { max-width: 340px; }
+.empty h3 { font-size: 19px; font-weight: 600; margin-bottom: 6px; }
+.empty p { color: var(--muted); }
+
+@media (max-width: 900px) {
+  html, body { height: auto; }
+  .app { display: block; }
+  .side { flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; padding-block: 10px; padding-right: var(--gr); }
+  .brand-name { font-size: 26px; }
+  .brand-sub, .link { display: none; }
+  .nav { flex-direction: row; margin-left: auto; }
+  .nav a { padding: 8px 10px; }
+  .nav a span.txt { display: none; }
+  .main { display: block; }
+  .top { padding-left: var(--gl); }
+  .view { padding-left: var(--gl); }
+  .split { container-type: normal; height: auto; }
+  .split-grid { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .sidecol { overflow: visible; }
+  .store { display: block; height: auto; }
+  .store-grid { grid-template-columns: minmax(0, 1fr); }
+  .drone-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mk.ring.live::after { animation: none; }
+  .mk.drone { transition: none; }
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-name" lang="ar" dir="rtl">عسّاس</div>
+      <div class="brand-sub">Drone survey console</div>
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#dashboard" data-view="dashboard">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="14" height="14" rx="1.5"></rect><path d="M2 11l4-3 3 2 3-4 4 3"></path></svg>
+        <span class="txt">Dashboard</span><span class="badge" id="navBadge" hidden>1</span>
+      </a>
+      <a href="#storage" data-view="storage">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="9" cy="4.5" rx="6" ry="2.5"></ellipse><path d="M3 4.5v4.5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V4.5M3 9v4.5C3 14.9 5.7 16 9 16s6-1.1 6-2.5V9"></path></svg>
+        <span class="txt">Storage</span>
+      </a>
+      <a href="#setup" data-view="setup">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="12" height="10" stroke-dasharray="3 2"></rect><circle cx="15" cy="9" r="1.6" fill="currentColor"></circle></svg>
+        <span class="txt">Setup</span>
+      </a>
+    </nav>
+    <div class="link">
+      <div class="link-title">Tower link</div>
+      <div class="link-dots" id="linkDots"></div>
+      <div id="linkText">Waiting for drones</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <h1 id="viewTitle">Dashboard</h1>
+      <div class="top-right">
+        <span class="chip" id="chipState">Idle</span>
+        <span class="chip chip-alarm" id="chipAlarm" hidden></span>
+        <span class="chip chip-warn" id="chipLink" hidden></span>
+        <span class="sim-note" id="simNote"></span>
+        <time class="num" id="clock"></time>
+      </div>
+    </header>
+
+    <section class="view" id="view-dashboard" hidden>
+      <div class="split"><div class="split-grid">
+        <div class="map-cell">
+          <div id="dashMap"></div>
+          <div class="overlay" id="dashEmpty" hidden>
+            <div class="overlay-box">
+              <h3>No scan area yet</h3>
+              <p>Choose the area and confirm the drone paths before a survey can start.</p>
+              <div class="btn-row"><a class="btn" href="#setup" style="text-decoration:none">Open Setup</a></div>
+            </div>
+          </div>
+        </div>
+        <div class="sidecol">
+          <section class="panel">
+            <h2>Survey</h2>
+            <div class="panel-body">
+              <div class="facts">
+                <div class="fact"><span>State</span><strong id="svState">Idle</strong></div>
+                <div class="fact" id="svLeftBox" hidden><span>Time left</span><strong class="num" id="svLeft">00:00</strong></div>
+                <div class="fact" id="svNextBox" hidden><span>Next survey in</span><strong class="num" id="svNext">00:00</strong></div>
+                <div class="fact"><span>Last scan</span><strong class="num" id="svLast">None</strong></div>
+                <div class="fact"><span>Lanes flown</span><strong class="num" id="svLanes">0 of 0</strong></div>
+              </div>
+              <div class="bar"><i id="svBar"></i></div>
+            </div>
+          </section>
+          <section class="panel">
+            <h2>Drones</h2>
+            <div id="droneList"></div>
+          </section>
+        </div>
+      </div></div>
+    </section>
+
+    <section class="view" id="view-storage" hidden>
+      <div class="store">
+        <div class="tabs" role="tablist" aria-label="Stored data">
+          <button role="tab" id="tab-alarms" data-tab="alarms" aria-selected="true">Alarm history</button>
+          <button role="tab" id="tab-scans" data-tab="scans" aria-selected="false">LiDAR data history</button>
+          <button role="tab" id="tab-images" data-tab="images" aria-selected="false">Image data history</button>
+        </div>
+        <div class="store-grid" id="storeGrid">
+          <div class="panel"><div class="tablewrap" id="storeList"></div></div>
+          <aside class="panel" id="storeDetail"></aside>
+        </div>
+        <div class="empty" id="storeEmpty" hidden>
+          <div>
+            <h3>No images yet</h3>
+            <p>Camera images from the drones will appear here once the cameras are connected.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-setup" hidden>
+      <div class="split"><div class="split-grid">
+        <div class="map-cell"><div id="setupMap"></div></div>
+        <div class="sidecol">
+          <section class="panel">
+            <div class="steps">
+              <div id="step1"><b>1</b>Scan area</div>
+              <div id="step2"><b>2</b>Drone paths</div>
+            </div>
+            <div class="panel-body" id="setupBody"></div>
+          </section>
+        </div>
+      </div></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  const IMG = { x0: -675, y1: 375, span: 750 };
+  const TOWER = { x: 0, y: 0, lat: 17.47, lon: 43.5 };
+  const CFG = { laneSpacing: 50, cruise: 8, simSpeed: 4, rangeLimit: 700, minSide: 150, restSeconds: 20, enduranceMin: 47, staleAfter: 2.5 };
+  const DEFAULT_AREA = { xmin: -600, xmax: 0, ymin: -300, ymax: 300 };
+  const DRONES = [{ id: 1, color: 'var(--d1)' }, { id: 2, color: 'var(--d2)' }, { id: 3, color: 'var(--d3)' }];
+  const LIVE_CHANGE = { type: 'dug', x: -492.2, y: 208.7 };
+  const TYPE_NAME = { dug: 'Dug ground', object: 'New object' };
+  const STATUS_NAME = { flying: 'Flying', returning: 'Returning', rest: 'At rest · OK' };
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const KEY = 'assas.area';
+  const parkAt = id => ({ x: TOWER.x + 40, y: TOWER.y + (2 - id) * 24 });
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const svg = (tag, attrs) => { const n = document.createElementNS(SVGNS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+  const pad = n => String(n).padStart(2, '0');
+  const mmss = s => `${pad(Math.floor(Math.max(0, s) / 60))}:${pad(Math.floor(Math.max(0, s) % 60))}`;
+  const clockText = d => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function dateText(d) {
+    const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const label = day === today ? 'Today' : day === today - 86400000 ? 'Yesterday' : `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+    return `${label} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function latlon(x, y) {
+    const lat = TOWER.lat + y / 111320;
+    const lon = TOWER.lon + x / (111320 * Math.cos(TOWER.lat * Math.PI / 180));
+    return `${lat.toFixed(5)}° N, ${lon.toFixed(5)}° E`;
+  }
+  const offsetShort = (x, y) => `${Math.round(Math.abs(x))} m ${x < 0 ? 'W' : 'E'} · ${Math.round(Math.abs(y))} m ${y < 0 ? 'S' : 'N'}`;
+  const offsetLong = (x, y) => `${Math.round(Math.abs(x))} m ${x < 0 ? 'west' : 'east'}, ${Math.round(Math.abs(y))} m ${y < 0 ? 'south' : 'north'} of the tower`;
+  const km = m => `${(m / 1000).toFixed(2)} km`;
+
+  function makePlan(area) {
+    const h = area.ymax - area.ymin;
+    const n = Math.max(3, Math.ceil(h / CFG.laneSpacing));
+    const sp = h / n;
+    const ys = Array.from({ length: n }, (_, i) => area.ymax - sp * (i + 0.5));
+    const names = ['North', 'Middle', 'South'];
+    let idx = 0;
+    const drones = DRONES.map((d, k) => {
+      const size = Math.floor(n / 3) + (k < n % 3 ? 1 : 0);
+      let lanes = ys.slice(idx, idx + size);
+      idx += size;
+      const bounds = { xmin: area.xmin, xmax: area.xmax, ymin: Math.min(...lanes) - sp / 2, ymax: Math.max(...lanes) + sp / 2 };
+      if (Math.abs(lanes[lanes.length - 1]) > Math.abs(lanes[0])) lanes = lanes.slice().reverse();
+      const off = (1 - k) * 6;
+      const pts = [[TOWER.x, TOWER.y]];
+      const laneEndIdx = [];
+      lanes.forEach((y, l) => {
+        const a = l % 2 === 0 ? area.xmax : area.xmin;
+        const b = l % 2 === 0 ? area.xmin : area.xmax;
+        pts.push([l === 0 ? a + off : a, y], [b, y]);
+        laneEndIdx.push(pts.length - 1);
+      });
+      const returnIdx = pts.length - 1;
+      if (lanes.length % 2 === 0) pts.push([area.xmax + off, lanes[lanes.length - 1]]);
+      pts.push([TOWER.x, TOWER.y]);
+      const cum = [0];
+      for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+      return { id: d.id, color: d.color, strip: names[k], lanes, pts, cum, length: cum[cum.length - 1], returnAt: cum[returnIdx], laneEnds: laneEndIdx.map(i => cum[i]), bounds };
+    });
+    return { area, drones, spacing: sp, laneCount: n };
+  }
+
+  function pointAt(d, s) {
+    const c = d.cum;
+    let i = 1;
+    while (i < c.length - 1 && c[i] < s) i++;
+    const seg = c[i] - c[i - 1] || 1;
+    const t = Math.min(1, Math.max(0, (s - c[i - 1]) / seg));
+    const a = d.pts[i - 1], b = d.pts[i];
+    const dx = (b[0] - a[0]) / seg, dy = (b[1] - a[1]) / seg;
+    return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, dx, dy };
+  }
+
+  function createSimulatedSource() {
+    const subs = { telemetry: [], alarm: [], survey: [] };
+    const emit = (k, m) => subs[k].forEach(f => f(m));
+    let plan = null, craft = [], phase = 'idle', restLeft = 0, last = 0, timer = null, surveyNo = 3, pending = null, outage = null, startedAt = 0;
+
+    function pickChange() {
+      let best = null;
+      plan.drones.forEach(d => {
+        for (let s = 0; s <= d.returnAt; s += 2) {
+          const p = pointAt(d, s);
+          const dist = Math.hypot(p.x - LIVE_CHANGE.x, p.y - LIVE_CHANGE.y);
+          if (!best || dist < best.dist) best = { dist, s, id: d.id };
+        }
+      });
+      return best && best.dist < 30 ? best : null;
+    }
+
+    function begin() {
+      surveyNo += 1;
+      phase = 'survey';
+      startedAt = Date.now();
+      craft = plan.drones.map((d, i) => ({ d, s: 0, battery: 100 - i * 1.4, flight: 0, landed: false, p1: Math.random() * 6.28, p2: Math.random() * 6.28 }));
+      pending = pickChange();
+      outage = { id: 3, at: 0.56, left: 12, on: false, done: false };
+      emit('survey', { state: 'started', no: surveyNo, startedAt, plan });
+    }
+
+    function message(c, now) {
+      const p = pointAt(c.d, c.s);
+      const taper = Math.min(1, c.s / 30, (c.d.length - c.s) / 30);
+      const w = c.landed ? 0 : taper * (1.6 * Math.sin(c.s / 160 * 6.28 + c.p1) + 1.1 * Math.sin(c.s / 70 * 6.28 + c.p2));
+      const x = p.x - p.dy * w, y = p.y + p.dx * w;
+      const status = c.landed ? 'rest' : c.s >= c.d.returnAt ? 'returning' : 'flying';
+      return {
+        id: c.d.id, at: now, x, y,
+        heading: Math.atan2(p.dx, p.dy) * 180 / Math.PI,
+        battery: c.battery,
+        speed: c.landed ? 0 : CFG.cruise + (Math.random() - 0.5) * 0.4,
+        delay: Math.round(36 + Math.hypot(x, y) / 700 * 42 + (Math.random() - 0.5) * 14),
+        status,
+        flightTime: c.flight,
+        timeLeft: (c.d.length - c.s) / CFG.cruise,
+        lanesDone: c.d.laneEnds.filter(e => c.s >= e).length
+      };
+    }
+
+    function step() {
+      const now = Date.now();
+      const dt = Math.min(1, (now - last) / 1000);
+      last = now;
+      if (phase === 'survey') {
+        const ds = dt * CFG.simSpeed;
+        craft.forEach(c => {
+          if (c.landed) return;
+          c.s = Math.min(c.d.length, c.s + CFG.cruise * ds);
+          c.flight += ds;
+          c.battery -= ds * 100 / (CFG.enduranceMin * 60);
+          if (c.s >= c.d.length) c.landed = true;
+        });
+        if (pending) {
+          const c = craft.find(k => k.d.id === pending.id);
+          if (c.s >= pending.s) {
+            emit('alarm', { type: LIVE_CHANGE.type, x: LIVE_CHANGE.x, y: LIVE_CHANGE.y, drone: c.d.id, at: now, surveyNo });
+            pending = null;
+          }
+        }
+        const oc = craft.find(k => k.d.id === outage.id);
+        if (oc && !outage.done && !outage.on && oc.s / oc.d.length >= outage.at) outage.on = true;
+        if (outage.on) {
+          outage.left -= dt;
+          if (outage.left <= 0) { outage.on = false; outage.done = true; }
+        }
+        craft.forEach(c => { if (!(outage.on && c.d.id === outage.id)) emit('telemetry', message(c, now)); });
+        if (craft.every(c => c.landed)) {
+          phase = 'rest';
+          restLeft = CFG.restSeconds;
+          emit('survey', {
+            state: 'completed', no: surveyNo, startedAt, endedAt: now, nextAt: now + CFG.restSeconds * 1000, plan,
+            results: craft.map(c => ({ id: c.d.id, strip: c.d.strip, bounds: c.d.bounds, lanes: c.d.lanes.length, distance: c.d.length, duration: c.flight }))
+          });
+        }
+      } else if (phase === 'rest') {
+        restLeft -= dt;
+        craft.forEach(c => emit('telemetry', message(c, now)));
+        if (restLeft <= 0) begin();
+      }
+    }
+
+    return {
+      on(type, fn) { subs[type].push(fn); },
+      start(p) {
+        plan = p;
+        last = Date.now();
+        begin();
+        if (!timer) timer = setInterval(step, 200);
+      }
+    };
+  }
+
+  function createMap(host, view) {
+    host.textContent = '';
+    host.className = 'map';
+    let v = view || { x0: IMG.x0, y1: IMG.y1, span: IMG.span };
+    if (view) {
+      v = { span: view.span, x0: Math.min(Math.max(view.x0, IMG.x0), IMG.x0 + IMG.span - view.span), y1: Math.max(Math.min(view.y1, IMG.y1), IMG.y1 - IMG.span + view.span) };
+    }
+    const zoom = IMG.span / v.span;
+    host.style.backgroundSize = `${zoom * 100}% ${zoom * 100}%`;
+    const bx = zoom === 1 ? 0 : (v.x0 - IMG.x0) / (IMG.span - v.span) * 100;
+    const by = zoom === 1 ? 0 : (IMG.y1 - v.y1) / (IMG.span - v.span) * 100;
+    host.style.backgroundPosition = `${bx}% ${by}%`;
+    const s = svg('svg', { class: 'map-svg', viewBox: `${v.x0} ${-v.y1} ${v.span} ${v.span}`, preserveAspectRatio: 'none' });
+    const g = svg('g', { transform: 'scale(1,-1)' });
+    s.append(g);
+    const layer = el('div', 'map-layer');
+    host.append(s, layer);
+    const map = {
+      host, g, layer, view: v,
+      place(node, x, y) { node.style.left = `${(x - v.x0) / v.span * 100}%`; node.style.top = `${(v.y1 - y) / v.span * 100}%`; return node; },
+      mark(cls, x, y, text) { const n = el('div', `mk ${cls}`, text); layer.append(n); return map.place(n, x, y); },
+      toWorld(cx, cy) { const r = host.getBoundingClientRect(); return { x: v.x0 + (cx - r.left) / r.width * v.span, y: v.y1 - (cy - r.top) / r.height * v.span }; },
+      furniture() {
+        const sc = el('div', 'scale', '100 m');
+        const bar = el('i');
+        sc.append(bar);
+        sc.style.width = `${100 / v.span * 100}%`;
+        layer.append(sc, el('div', 'north', 'N'), el('div', 'credit', 'Imagery: Esri, Maxar, Earthstar Geographics'));
+      },
+      tower() { map.mark('tower', TOWER.x, TOWER.y); map.mark('label below', TOWER.x, TOWER.y, 'Tower'); }
+    };
+    return map;
+  }
+
+  const rectAttrs = a => ({ x: a.xmin, y: a.ymin, width: a.xmax - a.xmin, height: a.ymax - a.ymin });
+  const polyPoints = pts => pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  function drawPlan(map, plan) {
+    plan.drones.forEach(d => {
+      map.g.append(svg('polyline', { class: 'plan-case', points: polyPoints(d.pts) }));
+      const p = svg('polyline', { class: 'plan', points: polyPoints(d.pts) });
+      p.style.stroke = d.color;
+      map.g.append(p);
+    });
+  }
+
+  const state = { view: 'dashboard', plan: null, fleet: {}, survey: { state: 'idle' }, liveAlarm: null, lastScan: null };
+  const store = { alarms: [], scans: [] };
+  const source = createSimulatedSource();
+
+  function seedStore() {
+    const plan = makePlan(DEFAULT_AREA);
+    const day = (n, h, m) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, m, 0, 0); return d; };
+    const surveys = [{ no: 1, name: 'Baseline scan', end: day(3, 6, 5) }, { no: 2, name: 'Survey 2', end: day(2, 17, 20) }, { no: 3, name: 'Survey 3', end: day(1, 17, 42) }];
+    let n = 0;
+    surveys.forEach(sv => plan.drones.forEach(d => {
+      n += 1;
+      store.scans.push({ id: `L-${String(n).padStart(3, '0')}`, time: sv.end, survey: sv.name, drone: d.id, strip: d.strip, bounds: d.bounds, lanes: d.lanes.length, distance: d.length, duration: d.length / CFG.cruise, pts: d.pts, color: d.color });
+    }));
+    const a = (no, type, x, y, drone, t) => store.alarms.push({ id: `A-${String(store.alarms.length + 1).padStart(3, '0')}`, time: t, type, x, y, drone, survey: `Survey ${no}`, state: 'acknowledged', ackTime: new Date(t.getTime() + 180000) });
+    a(2, 'object', -419.1, 225.6, 1, day(2, 17, 15));
+    a(2, 'dug', -82.6, 126.3, 1, day(2, 17, 18));
+    a(3, 'dug', -496.3, -220.5, 3, day(1, 17, 37));
+    a(3, 'object', -322.1, 113.2, 1, day(1, 17, 40));
+    state.lastScan = surveys[2].end;
+  }
+
+  const dash = { map: null, markers: {}, trails: {}, trailPts: {}, rows: {}, ring: null, pop: null };
+
+  function buildDashboard() {
+    const host = $('#dashMap');
+    dash.map = createMap(host);
+    dash.markers = {}; dash.trails = {}; dash.trailPts = {}; dash.ring = null; dash.pop = null;
+    const list = $('#droneList');
+    list.textContent = '';
+    dash.rows = {};
+    $('#dashEmpty').hidden = !!state.plan;
+    dash.map.furniture();
+    if (!state.plan) { dash.map.tower(); return; }
+    const plan = state.plan, a = plan.area;
+    dash.map.g.append(svg('rect', { class: 'zone', ...rectAttrs(a) }));
+    drawPlan(dash.map, plan);
+    plan.drones.forEach(d => {
+      const t = svg('polyline', { class: 'trail', points: '' });
+      t.style.stroke = d.color;
+      dash.map.g.append(t);
+      dash.trails[d.id] = t;
+      dash.trailPts[d.id] = [];
+    });
+    dash.map.mark('label above', a.xmax, a.ymax, `Scan zone ${Math.round(a.xmax - a.xmin)} × ${Math.round(a.ymax - a.ymin)} m`);
+    dash.map.tower();
+    plan.drones.forEach(d => {
+      const m = el('div', 'mk drone rest');
+      m.style.setProperty('--c', d.color);
+      m.append(el('span', 'nose'), el('b', null, d.id));
+      dash.map.layer.append(m);
+      dash.map.place(m, parkAt(d.id).x, parkAt(d.id).y);
+      dash.markers[d.id] = m;
+
+      const row = el('div', 'drone-row');
+      const head = el('div', 'drone-head');
+      const sw = el('span', 'swatch', d.id);
+      sw.style.setProperty('--c', d.color);
+      const pill = el('span', 'pill', 'Waiting');
+      head.append(sw, el('h3', null, `Drone ${d.id}`), pill);
+      const facts = el('div', 'drone-facts');
+      const f = (label) => { const box = el('div'); const v = el('strong', 'num', '–'); box.append(el('span', null, label), v); facts.append(box); return { box, v }; };
+      const batt = f('Battery'), flight = f('Flight time'), speed = f('Speed'), delay = f('Network delay');
+      const bar = el('div', 'batt'); const fill = el('i'); bar.append(fill); batt.box.append(bar);
+      const note = el('div', 'stale-note'); note.hidden = true;
+      row.append(head, facts, note);
+      list.append(row);
+      dash.rows[d.id] = { row, pill, batt: batt.v, fill, flight: flight.v, speed: speed.v, delay: delay.v, note };
+    });
+    renderAlarmOnMap();
+  }
+
+  function renderAlarmOnMap() {
+    if (!dash.map) return;
+    if (dash.ring) { dash.ring.remove(); dash.ring = null; }
+    if (dash.pop) { dash.pop.remove(); dash.pop = null; }
+    const al = state.liveAlarm;
+    if (!al) return;
+    dash.ring = dash.map.mark(al.state === 'new' ? 'ring live' : 'ring done', al.x, al.y);
+    if (al.state !== 'new') return;
+    const pop = el('div', al.y >= dash.map.view.y1 - dash.map.view.span / 2 ? 'alarm-pop low' : 'alarm-pop');
+    pop.setAttribute('role', 'alertdialog');
+    pop.setAttribute('aria-label', 'Change detected');
+    pop.append(el('div', 'eyebrow', 'Change detected'), el('h3', null, TYPE_NAME[al.type]));
+    const dl = el('dl', 'kv');
+    [['Found by', `Drone ${al.drone}`], ['Time', clockText(al.time)], ['Position', latlon(al.x, al.y)], ['From tower', offsetLong(al.x, al.y)]].forEach(([k, v]) => dl.append(el('dt', null, k), el('dd', 'num', v)));
+    const row = el('div', 'btn-row');
+    const ok = el('button', 'btn alarm', 'Acknowledge');
+    ok.id = 'ackLive';
+    ok.addEventListener('click', () => acknowledge(al));
+    row.append(ok);
+    pop.append(dl, row);
+    dash.map.layer.append(pop);
+    dash.pop = pop;
+  }
+
+  function acknowledge(al) {
+    al.state = 'acknowledged';
+    al.ackTime = new Date();
+    renderAlarmOnMap();
+    renderChips();
+    if (state.view === 'storage') renderStorage();
+  }
+
+  function renderChips() {
+    const running = state.survey.state === 'started';
+    const chip = $('#chipState');
+    chip.textContent = running ? 'Survey running' : 'Idle';
+    chip.classList.toggle('run', running);
+    const waiting = store.alarms.filter(a => a.state === 'new').length;
+    const ca = $('#chipAlarm');
+    ca.hidden = waiting === 0;
+    ca.textContent = waiting === 1 ? '1 alarm waiting' : `${waiting} alarms waiting`;
+    const badge = $('#navBadge');
+    badge.hidden = waiting === 0;
+    badge.textContent = waiting;
+  }
+
+  function onTelemetry(m) {
+    const prev = state.fleet[m.id];
+    state.fleet[m.id] = { ...m, seen: Date.now() };
+    const mk = dash.markers[m.id], r = dash.rows[m.id];
+    if (!mk || !r) return;
+    const at = m.status === 'rest' ? parkAt(m.id) : m;
+    dash.map.place(mk, at.x, at.y);
+    mk.style.setProperty('--h', `${m.heading}deg`);
+    mk.classList.toggle('rest', m.status === 'rest');
+    if (m.status !== 'rest') {
+      const pts = dash.trailPts[m.id];
+      pts.push([m.x, m.y]);
+      dash.trails[m.id].setAttribute('points', polyPoints(pts));
+    } else if (prev && prev.status !== 'rest') {
+      dash.trailPts[m.id].push([m.x, m.y]);
+      dash.trails[m.id].setAttribute('points', polyPoints(dash.trailPts[m.id]));
+    }
+    r.batt.textContent = `${Math.round(m.battery)}%`;
+    r.fill.style.width = `${Math.max(0, m.battery)}%`;
+    r.fill.className = m.battery < 20 ? 'low' : m.battery < 40 ? 'mid' : '';
+    r.flight.textContent = mmss(m.flightTime);
+    r.speed.textContent = `${m.speed.toFixed(1)} m/s`;
+    r.delay.textContent = `${m.delay} ms`;
+  }
+
+  function refresh() {
+    const now = Date.now();
+    $('#clock').textContent = clockText(new Date(now));
+    const ids = state.plan ? state.plan.drones.map(d => d.id) : [];
+    let fresh = 0;
+    const lost = [];
+    const dots = $('#linkDots');
+    if (dots.children.length !== ids.length) {
+      dots.textContent = '';
+      ids.forEach(id => { const i = el('i'); i.style.setProperty('--c', DRONES[id - 1].color); dots.append(i); });
+    }
+    ids.forEach((id, k) => {
+      const f = state.fleet[id], mk = dash.markers[id], r = dash.rows[id];
+      const age = f ? (now - f.seen) / 1000 : 0;
+      const stale = !!f && age > CFG.staleAfter;
+      if (f && !stale) fresh += 1;
+      if (stale) lost.push(id);
+      dots.children[k].classList.toggle('off', !f || stale);
+      if (!mk || !r) return;
+      mk.classList.toggle('stale', stale);
+      r.row.classList.toggle('stale', stale);
+      let tag = mk.querySelector('.tag');
+      if (stale) {
+        const txt = `No update for ${Math.floor(age)} s`;
+        if (!tag) { tag = el('span', 'tag'); mk.append(tag); }
+        tag.textContent = txt;
+        r.pill.textContent = 'Link lost';
+        r.pill.className = 'pill stale';
+        r.note.hidden = false;
+        r.note.textContent = `${txt}. Showing the last known position.`;
+        r.delay.textContent = '–';
+      } else {
+        if (tag) tag.remove();
+        r.note.hidden = true;
+        if (f) { r.pill.textContent = STATUS_NAME[f.status]; r.pill.className = `pill ${f.status}`; }
+      }
+    });
+    $('#linkText').textContent = ids.length ? `${fresh} of ${ids.length} drones reporting` : 'No drones set up';
+    const cl = $('#chipLink');
+    cl.hidden = lost.length === 0;
+    cl.textContent = lost.length ? `Drone ${lost.join(', ')} link lost` : '';
+
+    const running = state.survey.state === 'started';
+    $('#svState').textContent = !state.plan ? 'Not set up' : running ? 'Survey running' : 'Idle';
+    $('#svLeftBox').hidden = !running;
+    const next = !running && state.survey.nextAt;
+    $('#svNextBox').hidden = !next;
+    if (next) $('#svNext').textContent = mmss((state.survey.nextAt - now) / 1000);
+    const fl = ids.map(id => state.fleet[id]).filter(Boolean);
+    if (running) $('#svLeft').textContent = mmss(Math.max(0, ...fl.map(f => f.timeLeft)));
+    const total = state.plan ? state.plan.laneCount : 0;
+    const done = fl.reduce((s, f) => s + f.lanesDone, 0);
+    $('#svLanes').textContent = `${Math.min(done, total)} of ${total}`;
+    $('#svBar').style.width = total ? `${Math.min(100, done / total * 100)}%` : '0';
+    $('#svLast').textContent = state.lastScan ? dateText(state.lastScan) : 'None';
+  }
+
+  source.on('telemetry', onTelemetry);
+  source.on('alarm', m => {
+    store.alarms = store.alarms.filter(a => !a.live);
+    const al = { id: `A-${String(store.alarms.length + 1).padStart(3, '0')}`, time: new Date(m.at), type: m.type, x: m.x, y: m.y, drone: m.drone, survey: `Survey ${m.surveyNo}`, state: 'new', live: true };
+    store.alarms.push(al);
+    state.liveAlarm = al;
+    renderAlarmOnMap();
+    renderChips();
+    if (state.view === 'storage') renderStorage();
+  });
+  source.on('survey', m => {
+    if (m.state === 'started') {
+      state.survey = { state: 'started', no: m.no };
+      state.fleet = {};
+      if (state.liveAlarm && state.liveAlarm.state === 'new') { state.liveAlarm.state = 'acknowledged'; state.liveAlarm.ackTime = new Date(); }
+      state.liveAlarm = null;
+      Object.keys(dash.trailPts).forEach(id => { dash.trailPts[id] = []; dash.trails[id].setAttribute('points', ''); });
+      renderAlarmOnMap();
+    } else {
+      state.survey = { state: 'completed', no: m.no, nextAt: m.nextAt };
+      state.lastScan = new Date(m.endedAt);
+      store.scans = store.scans.filter(s => !s.live);
+      m.results.forEach(r => {
+        const d = m.plan.drones.find(k => k.id === r.id);
+        store.scans.push({ id: `L-${String(store.scans.length + 1).padStart(3, '0')}`, time: new Date(m.endedAt), survey: `Survey ${m.no}`, drone: r.id, strip: r.strip, bounds: r.bounds, lanes: r.lanes, distance: r.distance, duration: r.duration, pts: d.pts, color: d.color, live: true });
+      });
+      if (state.view === 'storage') renderStorage();
+    }
+    renderChips();
+  });
+
+  const setup = { step: 1, area: null, map: null, rect: null, drag: null };
+
+  function validate(a) {
+    const w = a.xmax - a.xmin, h = a.ymax - a.ymin;
+    const far = Math.max(...[[a.xmin, a.ymin], [a.xmin, a.ymax], [a.xmax, a.ymin], [a.xmax, a.ymax]].map(c => Math.hypot(c[0] - TOWER.x, c[1] - TOWER.y)));
+    if (far > CFG.rangeLimit) return { ok: false, far, msg: `Out of range. The far corner is ${Math.round(far)} m from the tower and the limit is ${CFG.rangeLimit} m.` };
+    if (w < CFG.minSide || h < CFG.minSide) return { ok: false, far, msg: `Too small. Each side must be at least ${CFG.minSide} m.` };
+    return { ok: true, far, msg: 'This area is inside the range of the drones.' };
+  }
+
+  function openSetup() {
+    setup.step = 1;
+    setup.area = { ...(state.plan ? state.plan.area : DEFAULT_AREA) };
+    renderSetup();
+  }
+
+  function renderSetup() {
+    $('#step1').classList.toggle('on', setup.step === 1);
+    $('#step2').classList.toggle('on', setup.step === 2);
+    const host = $('#setupMap');
+    const map = setup.map = createMap(host);
+    const R = CFG.rangeLimit, B = 2000;
+    map.g.append(svg('path', { class: 'shade', d: `M${-B},${-B}H${B}V${B}H${-B}Z M${-R},0 a${R},${R} 0 1,0 ${2 * R},0 a${R},${R} 0 1,0 ${-2 * R},0Z` }));
+    map.g.append(svg('circle', { class: 'range', cx: TOWER.x, cy: TOWER.y, r: R }));
+    setup.rect = svg('rect', { class: 'area', ...rectAttrs(setup.area) });
+    map.g.append(setup.rect);
+    const body = $('#setupBody');
+    body.textContent = '';
+    map.furniture();
+    map.mark('label right', IMG.x0 + 6, IMG.y1 - 20, `Range limit ${R} m`);
+
+    if (setup.step === 1) {
+      host.classList.add('draw');
+      map.tower();
+      body.append(el('p', 'setup-text', 'Drag on the map to draw the area the drones should scan. The shaded part of the map is beyond what the drones can cover from the tower.'));
+      const facts = el('div', 'facts');
+      const f = label => { const b = el('div', 'fact'); const v = el('strong', 'num'); b.append(el('span', null, label), v); facts.append(b); return v; };
+      const vSize = f('Size'), vArea = f('Area');
+      const reach = el('div'); reach.style.marginTop = '14px';
+      const reachLabel = el('span', 'num'); reachLabel.style.cssText = 'font-size:12.5px;color:var(--muted)';
+      const meter = el('div', 'meter'); const mfill = el('i'); meter.append(mfill);
+      reach.append(reachLabel, meter);
+      const msg = el('div', 'msg');
+      const row = el('div', 'btn-row');
+      const full = el('button', 'btn ghost', 'Use the full zone'); full.id = 'setupFull';
+      const next = el('button', 'btn', 'Create paths'); next.id = 'setupNext';
+      row.append(next, full);
+      body.append(facts, reach, msg, row);
+      const update = () => {
+        const a = setup.area, v = validate(a);
+        const ra = rectAttrs(a);
+        for (const k in ra) setup.rect.setAttribute(k, ra[k]);
+        setup.rect.classList.toggle('bad', !v.ok);
+        vSize.textContent = `${Math.round(a.xmax - a.xmin)} × ${Math.round(a.ymax - a.ymin)} m`;
+        vArea.textContent = `${((a.xmax - a.xmin) * (a.ymax - a.ymin) / 10000).toFixed(1)} ha`;
+        reachLabel.textContent = `Farthest corner: ${Math.round(v.far)} m of ${CFG.rangeLimit} m`;
+        mfill.style.width = `${Math.min(100, v.far / CFG.rangeLimit * 100)}%`;
+        mfill.className = v.far > CFG.rangeLimit ? 'bad' : '';
+        msg.textContent = v.msg;
+        msg.classList.toggle('bad', !v.ok);
+        next.disabled = !v.ok;
+      };
+      update();
+      full.addEventListener('click', () => { setup.area = { ...DEFAULT_AREA }; update(); });
+      next.addEventListener('click', () => { setup.step = 2; renderSetup(); });
+      const clampW = p => ({ x: Math.min(IMG.x0 + IMG.span, Math.max(IMG.x0, p.x)), y: Math.min(IMG.y1, Math.max(IMG.y1 - IMG.span, p.y)) });
+      const snap = v => Math.round(v / 10) * 10;
+      let start = null, before = null;
+      host.onpointerdown = e => {
+        start = clampW(map.toWorld(e.clientX, e.clientY));
+        before = { ...setup.area };
+        host.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      };
+      host.onpointermove = e => {
+        if (!start) return;
+        const p = clampW(map.toWorld(e.clientX, e.clientY));
+        setup.area = { xmin: snap(Math.min(start.x, p.x)), xmax: snap(Math.max(start.x, p.x)), ymin: snap(Math.min(start.y, p.y)), ymax: snap(Math.max(start.y, p.y)) };
+        update();
+      };
+      host.onpointerup = host.onpointercancel = () => {
+        if (!start) return;
+        const a = setup.area;
+        if (a.xmax - a.xmin < 20 || a.ymax - a.ymin < 20) { setup.area = before; update(); }
+        start = null;
+      };
+    } else {
+      host.onpointerdown = host.onpointermove = host.onpointerup = host.onpointercancel = null;
+      const plan = makePlan(setup.area);
+      drawPlan(map, plan);
+      map.tower();
+      body.append(el('p', 'setup-text', `The paths below were created automatically for this area: ${plan.laneCount} lanes, ${Math.round(plan.spacing)} m apart, shared between the three drones. They cannot be edited by hand.`));
+      const wrap = el('div', 'tablewrap');
+      const table = el('table', 'plan-table');
+      table.innerHTML = '<thead><tr><th>Drone</th><th>Lanes</th><th>Distance</th><th>Flight time</th></tr></thead>';
+      const tb = el('tbody');
+      plan.drones.forEach(d => {
+        const tr = el('tr');
+        const c0 = el('td'); const dot = el('span', 'dot'); dot.style.setProperty('--c', d.color); c0.append(dot, `Drone ${d.id}`);
+        tr.append(c0, el('td', 'num', d.lanes.length), el('td', 'num', km(d.length)), el('td', 'num', mmss(d.length / CFG.cruise)));
+        tb.append(tr);
+      });
+      table.append(tb);
+      wrap.append(table);
+      const facts = el('div', 'facts'); facts.style.marginTop = '14px';
+      const longest = Math.max(...plan.drones.map(d => d.length));
+      [['Survey time', mmss(longest / CFG.cruise)], ['Cruise speed', `${CFG.cruise} m/s`]].forEach(([k, v]) => { const b = el('div', 'fact'); b.append(el('span', null, k), el('strong', 'num', v)); facts.append(b); });
+      const row = el('div', 'btn-row');
+      const confirm = el('button', 'btn', 'Confirm and start survey'); confirm.id = 'setupConfirm';
+      const back = el('button', 'btn ghost', 'Back'); back.id = 'setupBack';
+      row.append(confirm, back);
+      body.append(wrap, facts, row);
+      back.addEventListener('click', () => { setup.step = 1; renderSetup(); });
+      confirm.addEventListener('click', () => {
+        try { localStorage.setItem(KEY, JSON.stringify(setup.area)); } catch (e) {}
+        applyPlan(plan);
+        location.hash = 'dashboard';
+        showView('dashboard');
+      });
+    }
+  }
+
+  function applyPlan(plan) {
+    state.plan = plan;
+    state.fleet = {};
+    state.liveAlarm = null;
+    state.survey = { state: 'idle' };
+    buildDashboard();
+    source.start(plan);
+  }
+
+  const storage = { tab: 'alarms', sel: { alarms: null, scans: null } };
+
+  function renderStorage() {
+    document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === storage.tab)));
+    const images = storage.tab === 'images';
+    $('#storeGrid').hidden = images;
+    $('#storeEmpty').hidden = !images;
+    if (images) return;
+    const list = $('#storeList');
+    list.textContent = '';
+    const table = el('table');
+    const rows = (storage.tab === 'alarms' ? store.alarms : store.scans).slice().sort((a, b) => b.time - a.time);
+    if (!storage.sel[storage.tab] || !rows.find(r => r.id === storage.sel[storage.tab])) storage.sel[storage.tab] = rows[0] ? rows[0].id : null;
+    const head = storage.tab === 'alarms' ? ['Date and time', 'Type', 'Drone', 'Location', 'State'] : ['Date and time', 'Survey', 'Drone', 'Location', 'Distance'];
+    const thead = el('thead'); const htr = el('tr'); head.forEach(h => htr.append(el('th', null, h))); thead.append(htr);
+    const tb = el('tbody');
+    rows.forEach(r => {
+      const tr = el('tr');
+      tr.tabIndex = 0;
+      tr.dataset.id = r.id;
+      if (r.id === storage.sel[storage.tab]) tr.classList.add('sel');
+      const dc = el('td'); const dot = el('span', 'dot'); dot.style.setProperty('--c', DRONES[r.drone - 1].color); dc.append(dot, `Drone ${r.drone}`);
+      if (storage.tab === 'alarms') {
+        const st = el('td'); st.append(el('span', `state ${r.state === 'new' ? 'new' : ''}`, r.state === 'new' ? 'Waiting' : 'Acknowledged'));
+        tr.append(el('td', 'num', dateText(r.time)), el('td', null, TYPE_NAME[r.type]), dc, el('td', 'num', offsetShort(r.x, r.y)), st);
+      } else {
+        tr.append(el('td', 'num', dateText(r.time)), el('td', null, r.survey), dc, el('td', null, `${r.strip} strip`), el('td', 'num', km(r.distance)));
+      }
+      const pick = () => { storage.sel[storage.tab] = r.id; renderStorage(); };
+      tr.addEventListener('click', pick);
+      tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      tb.append(tr);
+    });
+    table.append(thead, tb);
+    list.append(table);
+    renderDetail(rows.find(r => r.id === storage.sel[storage.tab]));
+  }
+
+  function renderDetail(r) {
+    const box = $('#storeDetail');
+    box.textContent = '';
+    if (!r) return;
+    const body = el('div', 'detail-body');
+    const mapHost = el('div');
+    const dl = el('dl', 'kv');
+    const add = (k, v) => dl.append(el('dt', null, k), el('dd', 'num', v));
+    const head = el('div');
+    if (storage.tab === 'alarms') {
+      head.append(el('h3', null, TYPE_NAME[r.type]), el('div', 'sub num', `${r.id} · ${dateText(r.time)}`));
+      body.append(head, mapHost);
+      const map = createMap(mapHost, { x0: r.x - 150, y1: r.y + 150, span: 300 });
+      map.furniture();
+      map.mark('ring done', r.x, r.y);
+      add('Found by', `Drone ${r.drone}`);
+      add('Survey', r.survey);
+      add('Position', latlon(r.x, r.y));
+      add('From tower', offsetLong(r.x, r.y));
+      add('State', r.state === 'new' ? 'Waiting for acknowledgement' : `Acknowledged ${dateText(r.ackTime)}`);
+      body.append(dl);
+      if (r.state === 'new') {
+        const row = el('div', 'btn-row'); row.style.marginTop = '0';
+        const ok = el('button', 'btn alarm', 'Acknowledge');
+        ok.addEventListener('click', () => acknowledge(r));
+        row.append(ok);
+        body.append(row);
+      }
+    } else {
+      head.append(el('h3', null, `${r.survey} · Drone ${r.drone}`), el('div', 'sub num', `${r.id} · ${dateText(r.time)}`));
+      body.append(head, mapHost);
+      const map = createMap(mapHost);
+      map.g.append(svg('rect', { class: 'strip', ...rectAttrs(r.bounds) }));
+      map.g.append(svg('polyline', { class: 'plan-case', points: polyPoints(r.pts) }));
+      const p = svg('polyline', { class: 'trail', points: polyPoints(r.pts) });
+      p.style.stroke = r.color; p.style.strokeWidth = 2;
+      map.g.append(p);
+      map.furniture();
+      map.tower();
+      const b = r.bounds;
+      add('Area scanned', `${r.strip} strip, ${Math.round(b.xmax - b.xmin)} × ${Math.round(b.ymax - b.ymin)} m`);
+      add('Centre', latlon((b.xmin + b.xmax) / 2, (b.ymin + b.ymax) / 2));
+      add('Lanes', r.lanes);
+      add('Distance flown', km(r.distance));
+      add('Flight time', mmss(r.duration));
+      body.append(dl);
+    }
+    box.append(body);
+  }
+
+  const TITLES = { dashboard: 'Dashboard', storage: 'Storage', setup: 'Setup' };
+  function showView(name) {
+    if (!TITLES[name]) name = 'dashboard';
+    state.view = name;
+    ['dashboard', 'storage', 'setup'].forEach(v => { $(`#view-${v}`).hidden = v !== name; });
+    document.querySelectorAll('.nav a').forEach(a => { if (a.dataset.view === name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    $('#viewTitle').textContent = TITLES[name];
+    if (name === 'setup') openSetup();
+    if (name === 'storage') renderStorage();
+  }
+
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { storage.tab = b.dataset.tab; renderStorage(); }));
+  window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
+
+  $('#simNote').textContent = `Simulated data · ${CFG.simSpeed}× speed`;
+  seedStore();
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  if (saved && ['xmin', 'xmax', 'ymin', 'ymax'].every(k => typeof saved[k] === 'number') && validate(saved).ok) {
+    applyPlan(makePlan(saved));
+    showView(location.hash.slice(1) || 'dashboard');
+  } else {
+    buildDashboard();
+    showView('setup');
+  }
+  renderChips();
+  refresh();
+  setInterval(refresh, 250);
+})();
+</script>
+
+</body>
+</html>
