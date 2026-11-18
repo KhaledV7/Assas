@@ -66,6 +66,16 @@ a { color: inherit; }
 .main { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; min-height: 0; }
 .top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 12px 0 12px 22px; padding-right: var(--gr); border-bottom: 1px solid var(--line); }
 .top h1 { font-size: 20px; font-weight: 600; }
+.run-btn { min-width: 132px; }
+.run-btn.cancel { background: var(--card); border-color: var(--alarm); color: var(--alarm); }
+.run-btn.cancel:hover { background: var(--alarm-bg); }
+.speed { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--card); }
+.seg button { border: 0; background: transparent; padding: 4px 10px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--green-800); color: var(--paper); font-weight: 600; }
+.row-link { border: 0; background: none; padding: 0; color: var(--green-800); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.export-note { margin-top: 10px; font-size: 13px; color: var(--muted); }
 .top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .chip { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; padding: 4px 10px; border-radius: 3px; background: var(--paper-2); border: 1px solid var(--line); white-space: nowrap; }
 .chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--stale); }
@@ -121,10 +131,12 @@ a { color: inherit; }
 .north { position: absolute; right: 12px; top: 10px; color: var(--map-line); font-size: 12px; font-weight: 700; text-align: center; text-shadow: 0 0 3px var(--map-ink); }
 .north::before { content: ""; display: block; margin: 0 auto 2px; border: 6px solid transparent; border-bottom: 12px solid var(--map-line); border-top: 0; width: 0; }
 
-.alarm-pop { position: absolute; left: 12px; top: 12px; width: 336px; max-width: calc(100% - 24px); background: var(--card); border: 2px solid var(--alarm); border-radius: 4px; padding: 14px 16px 16px; box-shadow: 0 8px 24px rgba(10, 22, 20, 0.4); pointer-events: auto; }
-.alarm-pop.low { top: auto; bottom: 12px; }
+.alarm-pop { background: var(--card); border: 2px solid var(--alarm); border-radius: 4px; padding: 12px 16px 14px; flex: none; }
+.alarm-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.alarm-head > div { min-width: 0; }
+.alarm-head .btn { margin-left: auto; padding: 7px 14px; }
 .alarm-pop .eyebrow { color: var(--alarm); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-.alarm-pop h3 { font-size: 22px; font-weight: 600; margin: 2px 0 10px; }
+.alarm-pop h3 { font-size: 19px; font-weight: 600; margin: 0; }
 .kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 14px; font-size: 14px; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
@@ -269,11 +281,15 @@ tbody tr.sel { background: #E3ECE7; }
   <div class="main">
     <header class="top">
       <h1 id="viewTitle">Dashboard</h1>
+      <button class="btn run-btn" id="runBtn" type="button">Run survey</button>
       <div class="top-right">
         <span class="chip" id="chipState">Idle</span>
-        <span class="chip chip-alarm" id="chipAlarm" hidden></span>
-        <span class="chip chip-warn" id="chipLink" hidden></span>
-        <span class="sim-note" id="simNote"></span>
+        <span class="speed" id="speedBox" hidden>Simulated data
+          <span class="seg" role="group" aria-label="Simulation speed">
+            <button type="button" id="speed1" data-speed="1" aria-pressed="true">Real time</button>
+            <button type="button" id="speed4" data-speed="4" aria-pressed="false">4× faster</button>
+          </span>
+        </span>
         <time class="num" id="clock"></time>
       </div>
     </header>
@@ -297,9 +313,7 @@ tbody tr.sel { background: #E3ECE7; }
               <div class="facts">
                 <div class="fact"><span>State</span><strong id="svState">Idle</strong></div>
                 <div class="fact" id="svLeftBox" hidden><span>Time left</span><strong class="num" id="svLeft">00:00</strong></div>
-                <div class="fact" id="svNextBox" hidden><span>Next survey in</span><strong class="num" id="svNext">00:00</strong></div>
                 <div class="fact"><span>Last scan</span><strong class="num" id="svLast">None</strong></div>
-                <div class="fact"><span>Lanes flown</span><strong class="num" id="svLanes">0 of 0</strong></div>
               </div>
               <div class="bar"><i id="svBar"></i></div>
             </div>
@@ -308,6 +322,7 @@ tbody tr.sel { background: #E3ECE7; }
             <h2>Drones</h2>
             <div id="droneList"></div>
           </section>
+          <div id="alarmSlot"></div>
         </div>
       </div></div>
     </section>
@@ -354,11 +369,12 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
 (() => {
   const IMG = { x0: -675, y1: 375, span: 750 };
   const TOWER = { x: 0, y: 0, lat: 17.47, lon: 43.5 };
-  const CFG = { laneSpacing: 50, cruise: 8, simSpeed: 4, rangeLimit: 700, minSide: 150, restSeconds: 20, enduranceMin: 47, staleAfter: 2.5 };
+  const CFG = { laneSpacing: 50, cruise: 8, rangeLimit: 700, minSide: 150, enduranceMin: 47, staleAfter: 2.5, altitude: 30, takeoffAlt: 10 };
   const DEFAULT_AREA = { xmin: -600, xmax: 0, ymin: -300, ymax: 300 };
   const DRONES = [{ id: 1, color: 'var(--d1)' }, { id: 2, color: 'var(--d2)' }, { id: 3, color: 'var(--d3)' }];
   const TYPE_NAME = { dug: 'Dug ground', object: 'New object' };
   const STATUS_NAME = { flying: 'Flying', returning: 'Returning', rest: 'At rest · OK' };
+  const SPEED_KEY = 'assas.speed';
   const SVGNS = 'http://www.w3.org/2000/svg';
   const KEY = 'assas.area';
   const parkAt = id => ({ x: TOWER.x + 40, y: TOWER.y + (2 - id) * 24 });
@@ -432,7 +448,7 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
   function createSimulatedSource() {
     const subs = { telemetry: [], alarm: [], survey: [] };
     const emit = (k, m) => subs[k].forEach(f => f(m));
-    let plan = null, craft = [], phase = 'idle', restLeft = 0, last = 0, timer = null, surveyNo = 3, pending = [], outage = null, startedAt = 0;
+    let plan = null, craft = [], phase = 'idle', restLeft = 0, last = 0, timer = null, surveyNo = 3, pending = [], outage = null, startedAt = 0, speed = 1, cancelled = false;
 
     const rand = (a, b) => a + Math.random() * (b - a);
     const pickWeighted = ws => { let r = Math.random() * ws.reduce((t, w) => t + w[1], 0); for (const [v, w] of ws) { r -= w; if (r <= 0) return v; } return ws[0][0]; };
@@ -459,11 +475,30 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
       return { id: plan.drones[Math.floor(Math.random() * plan.drones.length)].id, at: rand(0.15, 0.85), left: rand(6, 20), on: false, done: false };
     }
 
+    function parked() {
+      craft = plan.drones.map((d, i) => ({ d, s: 0, battery: 100 - i * 1.4, flight: 0, landed: true, p1: 0, p2: 0 }));
+    }
+
+    function goHome() {
+      cancelled = true;
+      pending = [];
+      craft.forEach(c => {
+        if (c.landed) return;
+        const p = pointAt(c.d, c.s);
+        const pts = [[p.x, p.y], [TOWER.x, TOWER.y]];
+        const len = Math.hypot(p.x - TOWER.x, p.y - TOWER.y);
+        c.done = c.s;
+        c.d = { ...c.d, pts, cum: [0, len], length: len, returnAt: 0, laneEnds: [] };
+        c.s = 0;
+      });
+    }
+
     function begin() {
       surveyNo += 1;
       phase = 'survey';
+      cancelled = false;
       startedAt = Date.now();
-      craft = plan.drones.map((d, i) => ({ d, s: 0, battery: 100 - i * 1.4, flight: 0, landed: false, p1: Math.random() * 6.28, p2: Math.random() * 6.28 }));
+      craft = plan.drones.map((d, i) => ({ d, s: 0, done: 0, battery: 100 - i * 1.4 - Math.random(), flight: 0, landed: false, p1: Math.random() * 6.28, p2: Math.random() * 6.28 }));
       pending = makeChanges();
       outage = makeOutage();
       emit('survey', { state: 'started', no: surveyNo, startedAt, plan });
@@ -484,7 +519,7 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
         status,
         flightTime: c.flight,
         timeLeft: (c.d.length - c.s) / CFG.cruise,
-        lanesDone: c.d.laneEnds.filter(e => c.s >= e).length
+        progress: cancelled ? 1 : c.s / c.d.length
       };
     }
 
@@ -493,7 +528,7 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
       const dt = Math.min(1, (now - last) / 1000);
       last = now;
       if (phase === 'survey') {
-        const ds = dt * CFG.simSpeed;
+        const ds = dt * speed;
         craft.forEach(c => {
           if (c.landed) return;
           c.s = Math.min(c.d.length, c.s + CFG.cruise * ds);
@@ -519,27 +554,29 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
         craft.forEach(c => { if (c.d.id !== silent) emit('telemetry', message(c, now)); });
         if (craft.every(c => c.landed)) {
           phase = 'rest';
-          restLeft = CFG.restSeconds;
           emit('survey', {
-            state: 'completed', no: surveyNo, startedAt, endedAt: now, nextAt: now + CFG.restSeconds * 1000, plan,
-            results: craft.map(c => ({ id: c.d.id, strip: c.d.strip, bounds: c.d.bounds, lanes: c.d.lanes.length, distance: c.d.length, duration: c.flight }))
+            state: cancelled ? 'cancelled' : 'completed', no: surveyNo, startedAt, endedAt: now, plan,
+            results: craft.map(c => ({ id: c.d.id, strip: c.d.strip, bounds: c.d.bounds, lanes: c.d.lanes.length, distance: c.done + c.d.length, duration: c.flight }))
           });
         }
       } else if (phase === 'rest') {
-        restLeft -= dt;
         craft.forEach(c => emit('telemetry', message(c, now)));
-        if (restLeft <= 0) begin();
       }
     }
 
     return {
       on(type, fn) { subs[type].push(fn); },
+      simulated: true,
       start(p) {
         plan = p;
         last = Date.now();
-        begin();
+        phase = 'rest';
+        parked();
         if (!timer) timer = setInterval(step, 200);
-      }
+      },
+      run() { if (plan && phase === 'rest') begin(); },
+      cancel() { if (phase === 'survey' && !cancelled) { goHome(); emit('survey', { state: 'returning', no: surveyNo }); } },
+      setSpeed(x) { speed = x; }
     };
   }
 
@@ -670,19 +707,20 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
     const waiting = state.liveAlarms.filter(a => a.state === 'new');
     const al = waiting[waiting.length - 1];
     if (!al) return;
-    const pop = el('div', al.y >= dash.map.view.y1 - dash.map.view.span / 2 ? 'alarm-pop low' : 'alarm-pop');
+    const pop = el('section', 'alarm-pop');
     pop.setAttribute('role', 'alertdialog');
     pop.setAttribute('aria-label', 'Change detected');
-    pop.append(el('div', 'eyebrow', waiting.length > 1 ? `Change detected · ${waiting.length} waiting` : 'Change detected'), el('h3', null, TYPE_NAME[al.type]));
-    const dl = el('dl', 'kv');
-    [['Found by', `Drone ${al.drone}`], ['Time', clockText(al.time)], ['Position', latlon(al.x, al.y)], ['From tower', offsetLong(al.x, al.y)]].forEach(([k, v]) => dl.append(el('dt', null, k), el('dd', 'num', v)));
-    const row = el('div', 'btn-row');
+    const head = el('div', 'alarm-head');
+    const ttl = el('div');
+    ttl.append(el('div', 'eyebrow', waiting.length > 1 ? `Change detected · ${waiting.length} waiting` : 'Change detected'), el('h3', null, TYPE_NAME[al.type]));
     const ok = el('button', 'btn alarm', 'Acknowledge');
     ok.id = 'ackLive';
     ok.addEventListener('click', () => acknowledge(al));
-    row.append(ok);
-    pop.append(dl, row);
-    dash.map.layer.append(pop);
+    head.append(ttl, ok);
+    const dl = el('dl', 'kv');
+    [['Found by', `Drone ${al.drone} at ${clockText(al.time)}`], ['Position', latlon(al.x, al.y)], ['From tower', offsetShort(al.x, al.y)]].forEach(([k, v]) => dl.append(el('dt', null, k), el('dd', 'num', v)));
+    pop.append(head, dl);
+    $('#alarmSlot').append(pop);
     dash.pop = pop;
   }
 
@@ -695,14 +733,16 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
   }
 
   function renderChips() {
-    const running = state.survey.state === 'started';
     const chip = $('#chipState');
-    chip.textContent = running ? 'Survey running' : 'Idle';
-    chip.classList.toggle('run', running);
     const waiting = store.alarms.filter(a => a.state === 'new').length;
-    const ca = $('#chipAlarm');
-    ca.hidden = waiting === 0;
-    ca.textContent = waiting === 1 ? '1 alarm waiting' : `${waiting} alarms waiting`;
+    const st = state.survey.state;
+    chip.textContent = st === 'started' ? 'Survey running' : st === 'returning' ? 'Returning to tower' : 'Idle';
+    chip.classList.toggle('run', st === 'started' || st === 'returning');
+    const rb = $('#runBtn');
+    rb.hidden = state.view !== 'dashboard';
+    rb.disabled = !state.plan || st === 'returning';
+    rb.textContent = st === 'started' ? 'Cancel survey' : st === 'returning' ? 'Returning…' : 'Run survey';
+    rb.classList.toggle('cancel', st === 'started');
     const badge = $('#navBadge');
     badge.hidden = waiting === 0;
     badge.textContent = waiting;
@@ -736,7 +776,6 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
     $('#clock').textContent = clockText(new Date(now));
     const ids = state.plan ? state.plan.drones.map(d => d.id) : [];
     let fresh = 0;
-    const lost = [];
     const dots = $('#linkDots');
     if (dots.children.length !== ids.length) {
       dots.textContent = '';
@@ -747,7 +786,6 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
       const age = f ? (now - f.seen) / 1000 : 0;
       const stale = !!f && age > CFG.staleAfter;
       if (f && !stale) fresh += 1;
-      if (stale) lost.push(id);
       dots.children[k].classList.toggle('off', !f || stale);
       if (!mk || !r) return;
       mk.classList.toggle('stale', stale);
@@ -769,22 +807,14 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
       }
     });
     $('#linkText').textContent = ids.length ? `${fresh} of ${ids.length} drones reporting` : 'No drones set up';
-    const cl = $('#chipLink');
-    cl.hidden = lost.length === 0;
-    cl.textContent = lost.length ? `Drone ${lost.join(', ')} link lost` : '';
-
-    const running = state.survey.state === 'started';
-    $('#svState').textContent = !state.plan ? 'Not set up' : running ? 'Survey running' : 'Idle';
-    $('#svLeftBox').hidden = !running;
-    const next = !running && state.survey.nextAt;
-    $('#svNextBox').hidden = !next;
-    if (next) $('#svNext').textContent = mmss((state.survey.nextAt - now) / 1000);
+    const st = state.survey.state;
+    const flying = st === 'started' || st === 'returning';
+    $('#svState').textContent = !state.plan ? 'Not set up' : st === 'started' ? 'Survey running' : st === 'returning' ? 'Returning' : 'Ready';
+    $('#svLeftBox').hidden = !flying;
     const fl = ids.map(id => state.fleet[id]).filter(Boolean);
-    if (running) $('#svLeft').textContent = mmss(Math.max(0, ...fl.map(f => f.timeLeft)));
-    const total = state.plan ? state.plan.laneCount : 0;
-    const done = fl.reduce((s, f) => s + f.lanesDone, 0);
-    $('#svLanes').textContent = `${Math.min(done, total)} of ${total}`;
-    $('#svBar').style.width = total ? `${Math.min(100, done / total * 100)}%` : '0';
+    if (flying) $('#svLeft').textContent = mmss(Math.max(0, ...fl.map(f => f.timeLeft)));
+    const prog = st === 'started' && fl.length ? fl.reduce((t, f) => t + f.progress, 0) / fl.length : st === 'completed' ? 1 : 0;
+    $('#svBar').style.width = `${Math.min(100, prog * 100)}%`;
     $('#svLast').textContent = state.lastScan ? dateText(state.lastScan) : 'None';
   }
 
@@ -808,13 +838,15 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
       store.scans = store.scans.filter(s => !s.live || s.no > oldest);
       Object.keys(dash.trailPts).forEach(id => { dash.trailPts[id] = [[]]; dash.trails[id].setAttribute('d', ''); });
       renderAlarmOnMap();
+    } else if (m.state === 'returning') {
+      state.survey = { state: 'returning', no: m.no };
     } else {
-      state.survey = { state: 'completed', no: m.no, nextAt: m.nextAt };
-      state.lastScan = new Date(m.endedAt);
+      state.survey = { state: m.state, no: m.no };
+      if (m.state === 'completed') state.lastScan = new Date(m.endedAt);
       m.results.forEach(r => {
         const d = m.plan.drones.find(k => k.id === r.id);
         scanNo += 1;
-        store.scans.push({ id: `L-${String(scanNo).padStart(3, '0')}`, time: new Date(m.endedAt), survey: `Survey ${m.no}`, no: m.no, drone: r.id, strip: r.strip, bounds: r.bounds, lanes: r.lanes, distance: r.distance, duration: r.duration, pts: d.pts, color: d.color, live: true });
+        store.scans.push({ id: `L-${String(scanNo).padStart(3, '0')}`, time: new Date(m.endedAt), survey: m.state === 'cancelled' ? `Survey ${m.no} (cancelled)` : `Survey ${m.no}`, no: m.no, drone: r.id, strip: r.strip, bounds: r.bounds, lanes: r.lanes, distance: r.distance, duration: r.duration, pts: d.pts, color: d.color, live: true });
       });
       if (state.view === 'storage') renderStorage();
     }
@@ -929,10 +961,13 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
       const longest = Math.max(...plan.drones.map(d => d.length));
       [['Survey time', mmss(longest / CFG.cruise)], ['Cruise speed', `${CFG.cruise} m/s`]].forEach(([k, v]) => { const b = el('div', 'fact'); b.append(el('span', null, k), el('strong', 'num', v)); facts.append(b); });
       const row = el('div', 'btn-row');
-      const confirm = el('button', 'btn', 'Confirm and start survey'); confirm.id = 'setupConfirm';
+      const confirm = el('button', 'btn', 'Confirm paths'); confirm.id = 'setupConfirm';
+      const exp = el('button', 'btn ghost', 'Export mission files'); exp.id = 'setupExport';
       const back = el('button', 'btn ghost', 'Back'); back.id = 'setupBack';
-      row.append(confirm, back);
-      body.append(wrap, facts, row);
+      row.append(confirm, exp, back);
+      const note = el('p', 'export-note', `Mission files use the ArduPilot waypoint format: take off from the tower, fly the lanes ${CFG.altitude} m above the ground, then return to the tower. Load them into the simulator or a real drone over MAVLink.`);
+      body.append(wrap, facts, row, note);
+      exp.addEventListener('click', () => plan.drones.forEach((d, i) => setTimeout(() => exportMission(d), i * 400)));
       back.addEventListener('click', () => { setup.step = 1; renderSetup(); });
       confirm.addEventListener('click', () => {
         try { localStorage.setItem(KEY, JSON.stringify(setup.area)); } catch (e) {}
@@ -941,6 +976,32 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
         showView('dashboard');
       });
     }
+  }
+
+  function toLatLon(x, y) {
+    return { lat: TOWER.lat + y / 111320, lon: TOWER.lon + x / (111320 * Math.cos(TOWER.lat * Math.PI / 180)) };
+  }
+
+  function missionText(d) {
+    const row = (seq, cur, frame, cmd, lat, lon, alt) => [seq, cur, frame, cmd, 0, 0, 0, 0, lat.toFixed(7), lon.toFixed(7), alt.toFixed(1), 1].join('\t');
+    const home = toLatLon(TOWER.x, TOWER.y);
+    const lines = ['QGC WPL 110', row(0, 1, 0, 16, home.lat, home.lon, 0), row(1, 0, 3, 22, home.lat, home.lon, CFG.takeoffAlt)];
+    let seq = 2;
+    d.pts.slice(1, -1).forEach(p => { const g = toLatLon(p[0], p[1]); lines.push(row(seq++, 0, 10, 16, g.lat, g.lon, CFG.altitude)); });
+    lines.push(row(seq, 0, 2, 20, 0, 0, 0));
+    return lines.join('\n') + '\n';
+  }
+
+  function exportMission(d) {
+    const blob = new Blob([missionText(d)], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `drone${d.id}.waypoints`;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
   function applyPlan(plan) {
@@ -1047,6 +1108,7 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
     ['dashboard', 'storage', 'setup'].forEach(v => { $(`#view-${v}`).hidden = v !== name; });
     document.querySelectorAll('.nav a').forEach(a => { if (a.dataset.view === name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     $('#viewTitle').textContent = TITLES[name];
+    renderChips();
     if (name === 'setup') openSetup();
     if (name === 'storage') renderStorage();
   }
@@ -1054,7 +1116,21 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
   document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { storage.tab = b.dataset.tab; renderStorage(); }));
   window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
 
-  $('#simNote').textContent = `Simulated data · ${CFG.simSpeed}× speed`;
+  function setSpeed(x) {
+    source.setSpeed(x);
+    $('#speed1').setAttribute('aria-pressed', String(x === 1));
+    $('#speed4').setAttribute('aria-pressed', String(x === 4));
+    try { localStorage.setItem(SPEED_KEY, String(x)); } catch (e) {}
+  }
+  $('#speedBox').hidden = !source.simulated;
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setSpeed(Number(b.dataset.speed))));
+  let savedSpeed = 1;
+  try { savedSpeed = Number(localStorage.getItem(SPEED_KEY)) === 4 ? 4 : 1; } catch (e) {}
+  setSpeed(savedSpeed);
+  $('#runBtn').addEventListener('click', () => {
+    if (state.survey.state === 'started') source.cancel();
+    else source.run();
+  });
   seedStore();
   alarmNo = store.alarms.length;
   scanNo = store.scans.length;
