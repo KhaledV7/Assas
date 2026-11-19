@@ -209,7 +209,17 @@ tbody tr.sel { background: #E3ECE7; }
 .state { font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 3px; border: 1px solid var(--line); background: var(--paper-2); }
 .state.new { background: var(--alarm-bg); border-color: var(--alarm); color: var(--alarm); }
 
-.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.tabs .btn { margin-left: auto; }
+.downloads { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.downloads h4 { margin: 0 0 2px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.dl-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--card); border-radius: 4px; padding: 9px 12px; }
+.dl-btn:hover { background: var(--paper-2); border-color: var(--green-500); }
+.dl-btn svg { width: 18px; height: 18px; flex: none; color: var(--green-800); }
+.dl-btn b { display: block; font-weight: 600; }
+.dl-btn small { display: block; color: var(--muted); font-size: 12.5px; }
+.dl-btn:disabled { cursor: not-allowed; background: var(--paper-2); }
+.dl-btn:disabled b, .dl-btn:disabled svg { color: var(--stale); }
 .tabs button { border: 1px solid var(--line); background: var(--card); padding: 9px 16px; border-radius: 4px; font-weight: 500; }
 .tabs button:hover { background: var(--paper-2); }
 .tabs button[aria-selected="true"] { background: var(--green-800); border-color: var(--green-800); color: var(--paper); font-weight: 600; }
@@ -333,6 +343,7 @@ tbody tr.sel { background: #E3ECE7; }
           <button role="tab" id="tab-alarms" data-tab="alarms" aria-selected="true">Alarm history</button>
           <button role="tab" id="tab-scans" data-tab="scans" aria-selected="false">LiDAR data history</button>
           <button role="tab" id="tab-images" data-tab="images" aria-selected="false">Image data history</button>
+          <button class="btn ghost" id="exportList" type="button">Export list (.csv)</button>
         </div>
         <div class="store-grid" id="storeGrid">
           <div class="panel"><div class="tablewrap" id="storeList"></div></div>
@@ -846,7 +857,7 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
       m.results.forEach(r => {
         const d = m.plan.drones.find(k => k.id === r.id);
         scanNo += 1;
-        store.scans.push({ id: `L-${String(scanNo).padStart(3, '0')}`, time: new Date(m.endedAt), survey: m.state === 'cancelled' ? `Survey ${m.no} (cancelled)` : `Survey ${m.no}`, no: m.no, drone: r.id, strip: r.strip, bounds: r.bounds, lanes: r.lanes, distance: r.distance, duration: r.duration, pts: d.pts, color: d.color, live: true });
+        store.scans.push({ id: `L-${String(scanNo).padStart(3, '0')}`, time: new Date(m.endedAt), survey: m.state === 'cancelled' ? `Survey ${m.no} (cancelled)` : `Survey ${m.no}`, no: m.no, drone: r.id, strip: r.strip, bounds: r.bounds, lanes: r.lanes, distance: r.distance, duration: r.duration, pts: d.pts, flown: (dash.trailPts[r.id] || []).map(g => g.slice()), color: d.color, live: true });
       });
       if (state.view === 'storage') renderStorage();
     }
@@ -992,16 +1003,59 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
     return lines.join('\n') + '\n';
   }
 
-  function exportMission(d) {
-    const blob = new Blob([missionText(d)], { type: 'text/plain' });
+  function saveFile(name, text, type) {
+    const blob = new Blob([text], { type: type || 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `drone${d.id}.waypoints`;
+    a.download = name;
     document.body.append(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function exportMission(d) { saveFile(`drone${d.id}.waypoints`, missionText(d)); }
+
+  const csvCell = v => { const t = String(v == null ? '' : v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const toCsv = rows => '\ufeff' + rows.map(r => r.map(csvCell).join(',')).join('\r\n') + '\r\n';
+  const iso = d => { const z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`; };
+  const fileStamp = d => iso(d).replace(/[-: ]/g, '').slice(0, 12);
+
+  const ALARM_HEAD = ['Alarm ID', 'Date and time', 'Type', 'Drone', 'Survey', 'Latitude', 'Longitude', 'East of tower (m)', 'North of tower (m)', 'Distance from tower (m)', 'State', 'Acknowledged at'];
+  function alarmRow(r) {
+    const g = toLatLon(r.x, r.y);
+    return [r.id, iso(r.time), TYPE_NAME[r.type], `Drone ${r.drone}`, r.survey, g.lat.toFixed(6), g.lon.toFixed(6), Math.round(r.x), Math.round(r.y), Math.round(Math.hypot(r.x, r.y)), r.state === 'new' ? 'Waiting' : 'Acknowledged', r.ackTime ? iso(r.ackTime) : ''];
+  }
+  const SCAN_HEAD = ['Scan ID', 'Date and time', 'Survey', 'Drone', 'Strip', 'Area (m)', 'Area (ha)', 'Centre latitude', 'Centre longitude', 'Lanes', 'Distance flown (km)', 'Flight time (min:s)'];
+  function scanRow(r) {
+    const b = r.bounds, w = b.xmax - b.xmin, h = b.ymax - b.ymin;
+    const g = toLatLon((b.xmin + b.xmax) / 2, (b.ymin + b.ymax) / 2);
+    return [r.id, iso(r.time), r.survey, `Drone ${r.drone}`, r.strip, `${Math.round(w)} x ${Math.round(h)}`, (w * h / 10000).toFixed(1), g.lat.toFixed(6), g.lon.toFixed(6), r.lanes, (r.distance / 1000).toFixed(2), mmss(r.duration)];
+  }
+  function flightGeoJson(r) {
+    const segs = (r.flown && r.flown.some(g => g.length > 1) ? r.flown : [r.pts]).filter(g => g.length > 1);
+    const coords = segs.map(g => g.map(q => { const ll = toLatLon(q[0], q[1]); return [Number(ll.lon.toFixed(7)), Number(ll.lat.toFixed(7))]; }));
+    const b = r.bounds;
+    const ring = [[b.xmin, b.ymin], [b.xmax, b.ymin], [b.xmax, b.ymax], [b.xmin, b.ymax], [b.xmin, b.ymin]].map(q => { const ll = toLatLon(q[0], q[1]); return [Number(ll.lon.toFixed(7)), Number(ll.lat.toFixed(7))]; });
+    return JSON.stringify({
+      type: 'FeatureCollection',
+      features: [
+        { type: 'Feature', properties: { name: `${r.survey} · Drone ${r.drone} flight path`, scan: r.id, time: iso(r.time), drone: r.drone, distance_km: Number((r.distance / 1000).toFixed(2)) }, geometry: { type: 'MultiLineString', coordinates: coords } },
+        { type: 'Feature', properties: { name: `${r.strip} strip scan area`, scan: r.id }, geometry: { type: 'Polygon', coordinates: [ring] } }
+      ]
+    }, null, 1);
+  }
+
+  const DL_ICON = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 2v9m-4-4 4 4 4-4M3 13v2.5h12V13"></path></svg>';
+  function dlButton(title, sub, fn) {
+    const b = el('button', 'dl-btn');
+    b.type = 'button';
+    b.innerHTML = DL_ICON;
+    const t = el('span'); t.append(el('b', null, title), el('small', null, sub));
+    b.append(t);
+    if (fn) b.addEventListener('click', fn); else b.disabled = true;
+    return b;
   }
 
   function applyPlan(plan) {
@@ -1016,8 +1070,9 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
   const storage = { tab: 'alarms', sel: { alarms: null, scans: null } };
 
   function renderStorage() {
-    document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === storage.tab)));
+    document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === storage.tab)));
     const images = storage.tab === 'images';
+    $('#exportList').hidden = images;
     $('#storeGrid').hidden = images;
     $('#storeEmpty').hidden = !images;
     if (images) return;
@@ -1063,6 +1118,8 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
     if (storage.tab === 'alarms') {
       head.append(el('h3', null, TYPE_NAME[r.type]), el('div', 'sub num', `${r.id} · ${dateText(r.time)}`));
       body.append(head, mapHost);
+      const dls = el('div', 'downloads');
+      dls.append(el('h4', null, 'Download'), dlButton('Alarm report', 'CSV · type, drone, time, GPS position, state', () => saveFile(`alarm_${r.id}_${fileStamp(r.time)}.csv`, toCsv([ALARM_HEAD, alarmRow(r)]), 'text/csv')));
       const map = createMap(mapHost, { x0: r.x - 150, y1: r.y + 150, span: 300 });
       map.furniture();
       map.mark('ring done', r.x, r.y);
@@ -1079,17 +1136,10 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
         row.append(ok);
         body.append(row);
       }
+      body.append(dls);
     } else {
       head.append(el('h3', null, `${r.survey} · Drone ${r.drone}`), el('div', 'sub num', `${r.id} · ${dateText(r.time)}`));
-      body.append(head, mapHost);
-      const map = createMap(mapHost);
-      map.g.append(svg('rect', { class: 'strip', ...rectAttrs(r.bounds) }));
-      map.g.append(svg('polyline', { class: 'plan-case', points: polyPoints(r.pts) }));
-      const p = svg('polyline', { class: 'trail', points: polyPoints(r.pts) });
-      p.style.stroke = r.color; p.style.strokeWidth = 2;
-      map.g.append(p);
-      map.furniture();
-      map.tower();
+      body.append(head);
       const b = r.bounds;
       add('Area scanned', `${r.strip} strip, ${Math.round(b.xmax - b.xmin)} × ${Math.round(b.ymax - b.ymin)} m`);
       add('Centre', latlon((b.xmin + b.xmax) / 2, (b.ymin + b.ymax) / 2));
@@ -1097,6 +1147,15 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
       add('Distance flown', km(r.distance));
       add('Flight time', mmss(r.duration));
       body.append(dl);
+      const dls = el('div', 'downloads');
+      const base = `${r.id}_drone${r.drone}_${fileStamp(r.time)}`;
+      dls.append(
+        el('h4', null, 'Download'),
+        dlButton('Scan report', 'CSV · survey, drone, area, distance, time', () => saveFile(`scan_${base}.csv`, toCsv([SCAN_HEAD, scanRow(r)]), 'text/csv')),
+        dlButton('Flight path', 'GeoJSON · route flown and area, opens in Google Earth or QGIS', () => saveFile(`path_${base}.geojson`, flightGeoJson(r), 'application/geo+json')),
+        dlButton('LiDAR point cloud (.las)', 'Available when connected to the drones', null)
+      );
+      body.append(dls);
     }
     box.append(body);
   }
@@ -1113,7 +1172,12 @@ document.documentElement.style.setProperty('--sat', 'url("data:image/jpeg;base64
     if (name === 'storage') renderStorage();
   }
 
-  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { storage.tab = b.dataset.tab; renderStorage(); }));
+  document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.addEventListener('click', () => { storage.tab = b.dataset.tab; renderStorage(); }));
+  $('#exportList').addEventListener('click', () => {
+    const now = new Date();
+    if (storage.tab === 'alarms') saveFile(`alarm_history_${fileStamp(now)}.csv`, toCsv([ALARM_HEAD, ...store.alarms.slice().sort((a, b) => b.time - a.time).map(alarmRow)]), 'text/csv');
+    else if (storage.tab === 'scans') saveFile(`lidar_history_${fileStamp(now)}.csv`, toCsv([SCAN_HEAD, ...store.scans.slice().sort((a, b) => b.time - a.time).map(scanRow)]), 'text/csv');
+  });
   window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
 
   function setSpeed(x) {
