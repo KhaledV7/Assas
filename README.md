@@ -11,7 +11,7 @@ Hills, valleys and dunes can block a border tower's view of the ground beyond it
 | Folder | Contents |
 |---|---|
 | [`website/`](website/) | Operator website: dashboard, setup and storage, running on simulated data |
-| [`cad/`](cad/) | CAD files for the drone (to be added) |
+| [`cad/`](cad/) | Drone CAD (Desert Hawk DH-01, R1): full assembly as STEP, bill of materials and renders. See the [CAD README](cad/README.md) |
 
 ## References
 
