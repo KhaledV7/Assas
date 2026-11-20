@@ -1,17 +1,26 @@
-# عسّاس
+# Assas (عساس)
 
 **A Cooperative Drone Workflow: GPS-Independent Visual Positioning and Terrain Change Detection**
 
 SAIF 2026 · Khaled Naif Alharbi · Malk Muqbil Albishri
 
-Hills, valleys and dunes can block a border tower's view of the ground beyond it. عسّاس is a proposed drone swarm that launches from existing towers, shares the survey area among its drones, compares new 3D LiDAR scans with an earlier scan to locate changes, and uses onboard AI on daylight or thermal images to help explain what changed.
+Hills, valleys and dunes can block a border tower's view of the ground beyond it. Assas is a proposed drone swarm that launches from existing towers, shares the survey area among its drones, compares new 3D LiDAR scans with an earlier scan to locate changes, and uses onboard AI on daylight or thermal images to help explain what changed.
 
 ## Repository contents
 
 | Folder | Contents |
 |---|---|
 | [`website/`](website/) | Operator website: dashboard, setup and storage, running on simulated data |
-| [`cad/`](cad/) | Drone CAD (Desert Hawk DH-01, R1): full assembly as STEP, bill of materials and renders. See the [CAD README](cad/README.md) |
+| [`cad/`](cad/) | Assas R1 drone CAD: STEP assembly, bill of materials, renders and poster figure |
+
+## Hardware: Assas R1
+
+[![Assas R1, front isometric view](cad/renders/iso_front.png)](cad/)
+
+Assas R1 is the patrol quadcopter that makes up the swarm: a 70-part, **4.26 kg** design on a carbon-fiber H-frame with a 658 mm wheelbase and 16 in propellers on 6S motors. Its sensor nose carries an inverted, 20°-pitched Livox Mid-360 LiDAR and a SIYI ZT6 EO/IR thermal gimbal. A Jetson Orin NX with an ARKV6X flight controller sits on a vibration-isolated carrier, power comes from a 6S3P battery, and an aluminum belly plate doubles as the heat sink.
+
+- [CAD overview, specifications and gallery](cad/)
+- [Download the STEP assembly](cad/models/Assas_R1_assembly.step)
 
 ## References
 
