@@ -38,3 +38,19 @@ Assas R1 is the patrol quadcopter that makes up the swarm: a 70-part, **4.26 kg*
 
 ### Drone charging
 5. S. A. H. Mohsan, N. Q. H. Othman, M. A. Khan, H. Amjad, and J. Żywiołek, "A Comprehensive Review of Micro UAV Charging Techniques," *Micromachines*, vol. 13, no. 6, Art. no. 977, 2022. [doi:10.3390/mi13060977](https://doi.org/10.3390/mi13060977)
+
+### Landmine detection
+
+6. . "Detection of 'Legbreaker' Antipersonnel Landmines by Analysis of Aerial Thermographic Images of the Soil," *Infrared Physics & Technology*, Elsevier, 2022. [doi:10.1016/j.infrared.2022.104307](https://doi.org/10.1016/j.infrared.2022.104307)
+
+### Border security context
+
+7. . Saudi Press Agency (SPA), Official Report. [https://www.spa.gov.sa/en/N2191636](https://www.spa.gov.sa/en/N2191636)
+
+### Terrain & hazard mapping
+
+8. . *Natural Hazards and Earth System Sciences*, vol. 19, pp. 1235–1251, 2019. [doi:10.5194/nhess-19-1235-2019](https://doi.org/10.5194/nhess-19-1235-2019)
+
+### Counter-UAS & jamming
+
+9. A. H. Michel, "Counter-Drone Systems," 2nd ed., Center for the Study of the Drone at Bard College, Dec. 2019. [PDF](https://dronecenter.bard.edu/files/2019/12/CSD-CUAS-2nd-Edition-Web.pdf)
