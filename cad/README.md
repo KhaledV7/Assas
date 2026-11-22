@@ -81,13 +81,3 @@ cad/
     └── Assas_R1_figure_poster.png Labelled poster figure (raster)
 ```
 
-## Opening the STEP assembly
-
-[`models/Assas_R1_assembly.step`](models/Assas_R1_assembly.step) is one self-contained file with no external part links. Coordinates: X forward, Y left, Z up; the X/Y origin is the centre of the four rotors and Z = 0 is the underside of the belly plate.
-
-1. Download the file: open it on GitHub and click **Download raw file**. GitHub does not preview STEP files in the browser.
-2. Open it in any of these:
-   - **SOLIDWORKS**: File → Open, set the file type to STEP, and select the file. It imports as an assembly.
-   - **FreeCAD** (free): File → Open.
-   - **Fusion**: upload it to a project, or drag it into the window.
-   - **No install**: drag the file into [3dviewer.net](https://3dviewer.net).
