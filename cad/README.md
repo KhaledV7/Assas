@@ -1,18 +1,18 @@
-# Assas R1 (عساس): drone CAD
+# Qirnas R1 (قرناس): drone CAD
 
-![Assas R1, front isometric view](renders/iso_front.png)
+![Qirnas R1, front isometric view](renders/iso_front.png)
 
-**Assas R1** is the full-size CAD model of the patrol quadcopter used by the عساس drone swarm. It is a complete 70-part assembly with an all-up mass of **4.26 kg**, built around a carbon-fiber H-frame, a forward-facing LiDAR and EO/IR sensor nose, and an onboard edge-AI computer.
+**Qirnas R1** is the full-size CAD model of the patrol quadcopter used by the قرناس drone swarm. It is a complete 70-part assembly with an all-up mass of **4.26 kg**, built around a carbon-fiber H-frame, a forward-facing LiDAR and EO/IR sensor nose, and an onboard edge-AI computer.
 
 ## System architecture
 
-![Assas R1: (a) assembled configuration and (b) exploded system architecture](figures/Assas_R1_figure_poster.png)
+![Qirnas R1: (a) assembled configuration and (b) exploded system architecture](figures/Qirnas_R1_figure_poster.png)
 
-*From top to bottom: upper enclosure and GNSS mast, 6S3P battery, onboard computer and flight controller, isolated sensor carrier with the inverted 20° LiDAR, carbon-fiber H-frame with motors and landing gear, and the aluminum heat-sink plate carrying the ESCs and the SIYI ZT6 gimbal. A print-ready vector PDF is in [`figures/Assas_R1_figure_poster.pdf`](figures/Assas_R1_figure_poster.pdf).*
+*From top to bottom: upper enclosure and GNSS mast, 6S3P battery, onboard computer and flight controller, isolated sensor carrier with the inverted 20° LiDAR, carbon-fiber H-frame with motors and landing gear, and the aluminum heat-sink plate carrying the ESCs and the SIYI ZT6 gimbal. A print-ready vector PDF is in [`figures/Qirnas_R1_figure_poster.pdf`](figures/Qirnas_R1_figure_poster.pdf).*
 
 ## Technical specifications
 
-| Item | Assas R1 |
+| Item | Qirnas R1 |
 |---|---|
 | Airframe | Asymmetric carbon-fiber H-frame: 25/23 mm side rails, 2 mm carbon side plates, 658 mm diagonal wheelbase |
 | Assembly | 70 named parts in a single STEP file (mm) |
@@ -65,8 +65,8 @@ R1 is a design layout: some part envelopes are estimated, and wiring, fasteners 
 cad/
 ├── README.md
 ├── models/
-│   ├── Assas_R1_assembly.step     Complete 70-part assembly (mm)
-│   └── Assas_R1_bom.csv           Bill of materials: type, material/source, mass, centre position
+│   ├── Qirnas_R1_assembly.step     Complete 70-part assembly (mm)
+│   └── Qirnas_R1_bom.csv           Bill of materials: type, material/source, mass, centre position
 ├── renders/
 │   ├── iso_front.png              Front isometric
 │   ├── iso_rear.png               Rear isometric
@@ -77,7 +77,7 @@ cad/
 │   ├── underside.png              Underside orthographic
 │   └── nose_sensor_detail.png     Nose sensor close-up
 └── figures/
-    ├── Assas_R1_figure_poster.pdf Labelled poster figure (vector)
-    └── Assas_R1_figure_poster.png Labelled poster figure (raster)
+    ├── Qirnas_R1_figure_poster.pdf Labelled poster figure (vector)
+    └── Qirnas_R1_figure_poster.png Labelled poster figure (raster)
 ```
 

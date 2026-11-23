@@ -1,6 +1,6 @@
 # Operator website
 
-The screen the operator of عسّاس uses to set up and watch the drones.
+The screen the operator of قرناس uses to set up and watch the drones.
 
 - **Dashboard:** live map with the three drones, their paths, battery, flight time, speed and network delay, change alarms and lost-link warnings. **Run survey** starts a survey; **Cancel survey** sends all drones straight back to the tower.
 - **Storage:** alarm history, LiDAR data history and image data history. Each entry can be downloaded: alarm report (.csv), scan report (.csv) and flight path (.geojson, opens in Google Earth or QGIS). **Export list** downloads the whole table. The LiDAR point cloud (.las) download becomes available when the website is connected to the drones.
