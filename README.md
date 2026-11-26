@@ -29,7 +29,7 @@ Qirnas is a student project developed for SAIF 2026 with the support of Qassim U
 | Member | Focus | Contact |
 |---|---|---|
 | **Khaled Alharbi** | Computer engineering: onboard computing and AI, simulation, operator website | [Email](mailto:Khaled.n.Alharbi0@gmail.com) · [LinkedIn](https://www.linkedin.com/in/khaled-alharbi-977947283) |
-| **Malk Albishri** | Mechanical engineer: designed the full Qirnas R1 drone in SolidWorks, a 70-part, 4.26 kg assembly including the carbon-fiber H-frame, the sensor carrier and 20° LiDAR mount, the aluminum heat-sink plate, the enclosure and the landing gear | [Email](mailto:Malk.albshri7@gmail.com) · [LinkedIn](https://www.linkedin.com/in/malk-alharbi-8149a6283) |
+| **Malk Albishri** | Mechanical engineer: drone airframe, sensor mounts and CAD design | [Email](mailto:Malk.albshri7@gmail.com) · [LinkedIn](https://www.linkedin.com/in/malk-alharbi-8149a6283) |
 
 For questions about the software, sensors or simulation, contact Khaled. For the drone's mechanical design, contact Malk.
 
