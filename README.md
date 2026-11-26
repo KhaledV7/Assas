@@ -22,6 +22,17 @@ Qirnas R1 is the patrol quadcopter that makes up the swarm: a 70-part, **4.26 kg
 - [CAD overview, specifications and gallery](cad/)
 - [Download the STEP assembly](cad/models/Qirnas_R1_assembly.step)
 
+## Team and contact
+
+Qirnas is a student project developed for SAIF 2026 with the support of Qassim University. We welcome questions, feedback and collaboration.
+
+| Member | Focus | Contact |
+|---|---|---|
+| **Khaled Alharbi** | Computer engineering: onboard computing and AI, simulation, operator website | [Email](mailto:Khaled.n.Alharbi0@gmail.com) · [LinkedIn](https://www.linkedin.com/in/khaled-alharbi-977947283) |
+| **Malk Albishri** | Mechanical design: drone airframe and CAD | [Email](mailto:Malk.albshri7@gmail.com) · [LinkedIn](https://www.linkedin.com/in/malk-alharbi-8149a6283) |
+
+For questions about the software, sensors or simulation, contact Khaled. For the drone's mechanical design, contact Malk.
+
 ## References
 
 ### Swarm coverage
